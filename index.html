@@ -1217,8 +1217,20 @@
         }
 
         .btn:disabled {
-            opacity: 0.5;
+            opacity: 0.7;
             cursor: not-allowed;
+        }
+
+        .btn-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
         }
 
         /* ============================================
@@ -1388,7 +1400,7 @@
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                 </svg>
             </div>
-            <h1 class="password-title">Elder ToDo</h1>
+            <h1 class="password-title" data-i18n="appTitle">Elder ToDo</h1>
             <p class="password-subtitle" data-i18n="enterPassword">Enter password to continue</p>
             <div class="password-input-group">
                 <input type="password" class="password-input" id="passwordInput" placeholder="••••••" maxlength="10" inputmode="numeric" autocomplete="off">
@@ -1799,6 +1811,7 @@
                 markAsImportant: 'Mark as important',
                 save: 'Save Task',
                 cancel: 'Cancel',
+                saving: 'Saving...',
                 add: 'Add',
                 edit: 'Edit',
                 delete: 'Delete',
@@ -1873,6 +1886,7 @@
                 markAsImportant: 'சிறப்புப் பணி',
                 save: 'சேமி',
                 cancel: 'ரத்து',
+                saving: 'சேமிக்கிறது...',
                 add: 'சேர்',
                 edit: 'திருத்து',
                 delete: 'நீக்கு',
@@ -2805,6 +2819,13 @@
                 return;
             }
             
+            const saveBtn = document.getElementById('saveTodoBtn');
+            const originalText = saveBtn.innerHTML;
+            
+            // Show loading state
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = `<span class="btn-spinner"></span> ${t('saving') || 'Saving...'}`;
+            
             const assignedElders = [];
             document.querySelectorAll('#elderCheckboxes input:checked').forEach(cb => {
                 assignedElders.push(parseInt(cb.value));
@@ -2826,6 +2847,10 @@
             } else {
                 success = await addTodo(todoData);
             }
+            
+            // Reset button state
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalText;
             
             if (success) {
                 closeTodoModal();
