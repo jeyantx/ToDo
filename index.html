@@ -141,6 +141,27 @@
             box-shadow: 0 0 0 3px var(--primary-100);
         }
 
+        select.password-input {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 1rem;
+            letter-spacing: normal;
+            text-align: left;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-color: white;
+            color: var(--gray-700);
+            cursor: pointer;
+        }
+
+        select.password-input option {
+            padding: 12px;
+            font-size: 1rem;
+        }
+
         .password-submit {
             padding: 14px 18px;
             background: var(--primary-500);
@@ -1465,8 +1486,8 @@
             <h1 class="password-title" data-i18n="appTitle">Elder ToDo</h1>
             <p class="password-subtitle" data-i18n="enterPassword">Enter password to continue</p>
             <div class="form-group" style="margin-bottom: 16px;">
-                <select class="password-input" id="usernameInput" style="letter-spacing: normal; font-size: 1rem; cursor: pointer;">
-                    <option value="" data-i18n="selectYourName">-- Select Your Name --</option>
+                <select class="password-input" id="usernameInput">
+                    <option value="">Select your name</option>
                 </select>
             </div>
             <div class="password-input-group">
