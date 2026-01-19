@@ -1447,271 +1447,120 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
     <script>
         /* ============================================
-           CONFIGURATION
+           FIREBASE CONFIGURATION
            ============================================ */
-        // Token parts (obfuscated to avoid automatic detection)
-        const _p = ['Z2l0aHViX3BhdF8','xMUFIUERVSEkwTEFt','emthVjJzMDJiX2VL','eHNnRUUwQmdQeTJI','bmJXd0UwTGY4Yk1q','SFl4bGdFRVk2UmdU','SHZrSGNNNEpHSVcz','VXUxMWhEbWh6'];
-        const _d = (p) => atob(p.join(''));
-        const CONFIG = {
-            GITHUB_TOKEN: _d(_p),
-            GITHUB_OWNER: 'jeyantx',
-            GITHUB_REPO: 'ToDo',
-            ELDERS_FILE: 'data/elders.json',
-            TODOS_FILE: 'data/todos.json',
-            COMPLETED_FILE: 'data/completed.json',
-            AUTO_RELOAD_MINUTES: 20
+        const firebaseConfig = {
+            apiKey: "AIzaSyCZyDDl4qlUAJ4COtJRSd6d5_pWA-I-G_E",
+            authDomain: "todo-5fcdf.firebaseapp.com",
+            projectId: "todo-5fcdf",
+            storageBucket: "todo-5fcdf.firebasestorage.app",
+            messagingSenderId: "493348371854",
+            appId: "1:493348371854:web:0d09953c5881d3d0e4f8df"
         };
 
-        const API_BASE = `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/contents`;
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        /* ============================================
-           AUTO RELOAD MANAGEMENT
-           ============================================ */
-        let lastActivityTime = Date.now();
-        let autoReloadInterval = null;
-
-        function resetActivityTimer() {
-            lastActivityTime = Date.now();
-        }
-
-        function isFormDirty() {
-            // Check if any modal is open with data
-            const todoModal = document.getElementById('todoModal');
-            const elderModal = document.getElementById('elderModal');
-            
-            if (todoModal && todoModal.classList.contains('active')) {
-                const titleInput = document.getElementById('todoTitle');
-                if (titleInput && titleInput.value.trim()) return true;
-            }
-            
-            if (elderModal && elderModal.classList.contains('active')) {
-                return true;
-            }
-            
-            return false;
-        }
-
-        function checkAutoReload() {
-            const inactiveMinutes = (Date.now() - lastActivityTime) / (1000 * 60);
-            if (inactiveMinutes >= CONFIG.AUTO_RELOAD_MINUTES && !isFormDirty()) {
-                location.reload();
-            }
-        }
-
-        function initAutoReload() {
-            // Track user activity
-            ['click', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-                document.addEventListener(event, resetActivityTimer, { passive: true });
-            });
-            
-            // Check every minute
-            autoReloadInterval = setInterval(checkAutoReload, 60 * 1000);
-        }
+        // Collections
+        const eldersCollection = db.collection('elders');
+        const todosCollection = db.collection('todos');
+        const completedCollection = db.collection('completed');
+        const configCollection = db.collection('config');
 
         /* ============================================
            STATE MANAGEMENT
            ============================================ */
         let state = {
-            elders: { version: 1, lastUpdated: null, elders: [] },
-            todos: { version: 1, lastUpdated: null, nextId: 1, todos: [] },
-            completed: { version: 1, lastUpdated: null, todos: [] },
-            eldersSha: null,
-            todosSha: null,
-            completedSha: null,
+            elders: [],
+            todos: [],
+            completed: [],
+            nextTodoId: 1,
+            nextElderId: 1,
             currentTab: 'active',
             searchQuery: '',
             sortBy: 'createdAt-desc',
             groupByElder: false,
             editingTodoId: null,
-            confirmCallback: null
+            confirmCallback: null,
+            unsubscribers: []
         };
 
         /* ============================================
-           GITHUB API FUNCTIONS
+           FIREBASE DATA OPERATIONS
            ============================================ */
         
-        // Raw content URL for reading (better CORS support, no rate limits)
-        const RAW_BASE = `https://raw.githubusercontent.com/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/main`;
-        
-        async function fetchFile(path) {
-            try {
-                // Get content from raw.githubusercontent.com (no rate limits, good CORS)
-                const rawResponse = await fetch(`${RAW_BASE}/${path}?t=${Date.now()}`);
-                
-                if (!rawResponse.ok) {
-                    if (rawResponse.status === 404) {
-                        return null;
-                    }
-                    throw new Error(`HTTP ${rawResponse.status}`);
-                }
-                
-                const content = await rawResponse.json();
-                
-                // SHA will be fetched when needed for saving
-                return { content, sha: null };
-            } catch (error) {
-                console.error(`Error fetching ${path}:`, error);
-                throw error;
-            }
-        }
-        
-        async function getFileSha(path, token) {
-            try {
-                const response = await fetch(`${API_BASE}/${path}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    return data.sha;
-                }
-                return null;
-            } catch (error) {
-                console.error(`Error getting SHA for ${path}:`, error);
-                return null;
+        // Load config (nextIds)
+        async function loadConfig() {
+            const doc = await configCollection.doc('appData').get();
+            if (doc.exists) {
+                const data = doc.data();
+                state.nextTodoId = data.nextTodoId || 1;
+                state.nextElderId = data.nextElderId || 1;
             }
         }
 
-        async function saveFile(path, content, sha, message) {
-            const token = CONFIG.GITHUB_TOKEN;
-            
+        // Save config
+        async function saveConfig() {
+            await configCollection.doc('appData').set({
+                nextTodoId: state.nextTodoId,
+                nextElderId: state.nextElderId
+            });
+        }
+
+        // Set up real-time listeners
+        function setupRealtimeListeners() {
             setSyncStatus('syncing');
-            try {
-                // Get current SHA if not provided
-                let currentSha = sha;
-                if (!currentSha) {
-                    currentSha = await getFileSha(path, token);
-                }
-                
-                const body = {
-                    message: message || `Update ${path}`,
-                    content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))))
-                };
-                
-                // Only include SHA if we have one (for updates vs creates)
-                if (currentSha) {
-                    body.sha = currentSha;
-                }
-                
-                const response = await fetch(`${API_BASE}/${path}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(body)
-                });
-                
-                // If unauthorized, show error
-                if (response.status === 401) {
-                    showToast('Token invalid or expired. Please contact admin.', 'error');
-                    throw new Error('TOKEN_INVALID');
-                }
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    if (response.status === 409 || errorData.message?.includes('sha')) {
-                        // Version conflict - reload data
-                        showToast('Data was modified elsewhere. Reloading...', 'warning');
-                        await loadData();
-                        throw new Error('VERSION_CONFLICT');
-                    }
-                    throw new Error(`HTTP ${response.status}: ${errorData.message}`);
-                }
-                
-                const data = await response.json();
+            
+            // Elders listener
+            const unsubElders = eldersCollection.orderBy('createdAt', 'asc').onSnapshot(snapshot => {
+                state.elders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAll();
                 setSyncStatus('synced');
-                return data.content.sha;
-            } catch (error) {
+            }, error => {
+                console.error('Elders listener error:', error);
                 setSyncStatus('error');
-                console.error(`Error saving ${path}:`, error);
-                throw error;
-            }
+            });
+
+            // Todos listener
+            const unsubTodos = todosCollection.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+                state.todos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAll();
+                setSyncStatus('synced');
+            }, error => {
+                console.error('Todos listener error:', error);
+                setSyncStatus('error');
+            });
+
+            // Completed listener
+            const unsubCompleted = completedCollection.orderBy('completedAt', 'desc').onSnapshot(snapshot => {
+                state.completed = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAll();
+                setSyncStatus('synced');
+            }, error => {
+                console.error('Completed listener error:', error);
+                setSyncStatus('error');
+            });
+
+            state.unsubscribers = [unsubElders, unsubTodos, unsubCompleted];
         }
 
-        /* ============================================
-           DATA OPERATIONS
-           ============================================ */
+        // Initialize data loading
         async function loadData() {
             setSyncStatus('syncing');
             try {
-                const [eldersData, todosData, completedData] = await Promise.all([
-                    fetchFile(CONFIG.ELDERS_FILE),
-                    fetchFile(CONFIG.TODOS_FILE),
-                    fetchFile(CONFIG.COMPLETED_FILE).catch(() => null)
-                ]);
-                
-                if (eldersData) {
-                    state.elders = eldersData.content;
-                    state.eldersSha = eldersData.sha;
-                }
-                
-                if (todosData) {
-                    state.todos = todosData.content;
-                    state.todosSha = todosData.sha;
-                }
-                
-                if (completedData) {
-                    state.completed = completedData.content;
-                    state.completedSha = completedData.sha;
-                } else {
-                    // Initialize completed file if it doesn't exist
-                    state.completed = { version: 1, lastUpdated: null, todos: [] };
-                }
-                
-                setSyncStatus('synced');
-                renderAll();
+                await loadConfig();
+                setupRealtimeListeners();
             } catch (error) {
+                console.error('Error loading data:', error);
                 setSyncStatus('error');
                 showToast('Failed to load data. Please refresh.', 'error');
-            }
-        }
-
-        async function saveElders() {
-            state.elders.lastUpdated = new Date().toISOString();
-            state.elders.version++;
-            try {
-                state.eldersSha = await saveFile(CONFIG.ELDERS_FILE, state.elders, state.eldersSha, 'Update elders');
-                return true;
-            } catch (error) {
-                if (error.message !== 'VERSION_CONFLICT') {
-                    showToast('Failed to save elders.', 'error');
-                }
-                return false;
-            }
-        }
-
-        async function saveTodos() {
-            state.todos.lastUpdated = new Date().toISOString();
-            state.todos.version++;
-            try {
-                state.todosSha = await saveFile(CONFIG.TODOS_FILE, state.todos, state.todosSha, 'Update todos');
-                return true;
-            } catch (error) {
-                if (error.message !== 'VERSION_CONFLICT') {
-                    showToast('Failed to save tasks.', 'error');
-                }
-                return false;
-            }
-        }
-
-        async function saveCompleted() {
-            state.completed.lastUpdated = new Date().toISOString();
-            state.completed.version++;
-            try {
-                state.completedSha = await saveFile(CONFIG.COMPLETED_FILE, state.completed, state.completedSha, 'Update completed');
-                return true;
-            } catch (error) {
-                if (error.message !== 'VERSION_CONFLICT') {
-                    showToast('Failed to save completed tasks.', 'error');
-                }
-                return false;
             }
         }
 
@@ -1722,48 +1571,75 @@
             const trimmedName = name.trim();
             if (!trimmedName) return;
             
-            const maxId = state.elders.elders.reduce((max, e) => Math.max(max, e.id), 0);
-            const newElder = {
-                id: maxId + 1,
-                name: trimmedName,
-                createdAt: new Date().toISOString()
-            };
-            
-            state.elders.elders.push(newElder);
-            if (await saveElders()) {
+            setSyncStatus('syncing');
+            try {
+                const elderId = state.nextElderId++;
+                await eldersCollection.doc(String(elderId)).set({
+                    name: trimmedName,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                await saveConfig();
                 showToast(`Elder "${trimmedName}" added!`, 'success');
-                renderAll();
+            } catch (error) {
+                console.error('Error adding elder:', error);
+                showToast('Failed to add elder.', 'error');
+                setSyncStatus('error');
             }
         }
 
         async function updateElder(id, name) {
-            const elder = state.elders.elders.find(e => e.id === id);
-            if (elder) {
-                elder.name = name.trim();
-                if (await saveElders()) {
-                    showToast('Elder updated!', 'success');
-                    renderAll();
-                }
+            const trimmedName = name.trim();
+            if (!trimmedName) return;
+            
+            setSyncStatus('syncing');
+            try {
+                await eldersCollection.doc(String(id)).update({ name: trimmedName });
+                showToast('Elder updated!', 'success');
+            } catch (error) {
+                console.error('Error updating elder:', error);
+                showToast('Failed to update elder.', 'error');
+                setSyncStatus('error');
             }
         }
 
         async function deleteElder(id) {
-            const elder = state.elders.elders.find(e => e.id === id);
+            const elder = state.elders.find(e => e.id === String(id));
             if (!elder) return;
             
             showConfirm(
                 `Delete "${elder.name}"?`,
                 'This elder will be removed from all tasks.',
                 async () => {
-                    state.elders.elders = state.elders.elders.filter(e => e.id !== id);
-                    // Remove elder from all todos
-                    state.todos.todos.forEach(todo => {
-                        todo.assignedElders = todo.assignedElders.filter(eid => eid !== id);
-                    });
-                    
-                    await Promise.all([saveElders(), saveTodos()]);
-                    showToast('Elder deleted!', 'success');
-                    renderAll();
+                    setSyncStatus('syncing');
+                    try {
+                        // Delete elder
+                        await eldersCollection.doc(String(id)).delete();
+                        
+                        // Remove elder from all todos
+                        const batch = db.batch();
+                        const elderId = Number(id);
+                        
+                        state.todos.forEach(todo => {
+                            if (todo.assignedElders && todo.assignedElders.includes(elderId)) {
+                                const updatedElders = todo.assignedElders.filter(eid => eid !== elderId);
+                                batch.update(todosCollection.doc(todo.id), { assignedElders: updatedElders });
+                            }
+                        });
+                        
+                        state.completed.forEach(todo => {
+                            if (todo.assignedElders && todo.assignedElders.includes(elderId)) {
+                                const updatedElders = todo.assignedElders.filter(eid => eid !== elderId);
+                                batch.update(completedCollection.doc(todo.id), { assignedElders: updatedElders });
+                            }
+                        });
+                        
+                        await batch.commit();
+                        showToast('Elder deleted!', 'success');
+                    } catch (error) {
+                        console.error('Error deleting elder:', error);
+                        showToast('Failed to delete elder.', 'error');
+                        setSyncStatus('error');
+                    }
                 }
             );
         }
@@ -1772,34 +1648,35 @@
            TODO OPERATIONS
            ============================================ */
         async function addTodo(todoData) {
-            const newTodo = {
-                id: state.todos.nextId++,
-                title: todoData.title.trim(),
-                description: todoData.description?.trim() || '',
-                assignedElders: todoData.assignedElders || [],
-                dueDate: todoData.dueDate || null,
-                priority: todoData.priority || 'medium',
-                isStarred: todoData.isStarred || false,
-                isCompleted: false,
-                completedAt: null,
-                createdAt: new Date().toISOString(),
-                recurring: todoData.recurring || null,
-                order: state.todos.todos.length
-            };
-            
-            state.todos.todos.push(newTodo);
-            if (await saveTodos()) {
+            setSyncStatus('syncing');
+            try {
+                const todoId = state.nextTodoId++;
+                await todosCollection.doc(String(todoId)).set({
+                    title: todoData.title.trim(),
+                    description: todoData.description?.trim() || '',
+                    assignedElders: todoData.assignedElders || [],
+                    dueDate: todoData.dueDate || null,
+                    priority: todoData.priority || 'medium',
+                    isStarred: todoData.isStarred || false,
+                    recurring: todoData.recurring || null,
+                    order: state.todos.length,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                await saveConfig();
                 showToast('Task added!', 'success');
-                renderAll();
                 return true;
+            } catch (error) {
+                console.error('Error adding todo:', error);
+                showToast('Failed to add task.', 'error');
+                setSyncStatus('error');
+                return false;
             }
-            return false;
         }
 
         async function updateTodo(id, todoData) {
-            const todo = state.todos.todos.find(t => t.id === id);
-            if (todo) {
-                Object.assign(todo, {
+            setSyncStatus('syncing');
+            try {
+                await todosCollection.doc(String(id)).update({
                     title: todoData.title.trim(),
                     description: todoData.description?.trim() || '',
                     assignedElders: todoData.assignedElders || [],
@@ -1808,107 +1685,116 @@
                     isStarred: todoData.isStarred || false,
                     recurring: todoData.recurring || null
                 });
-                
-                if (await saveTodos()) {
-                    showToast('Task updated!', 'success');
-                    renderAll();
-                    return true;
-                }
+                showToast('Task updated!', 'success');
+                return true;
+            } catch (error) {
+                console.error('Error updating todo:', error);
+                showToast('Failed to update task.', 'error');
+                setSyncStatus('error');
+                return false;
             }
-            return false;
         }
 
         async function deleteTodo(id, fromCompleted = false) {
-            const list = fromCompleted ? state.completed.todos : state.todos.todos;
-            const todo = list.find(t => t.id === id);
+            const list = fromCompleted ? state.completed : state.todos;
+            const todo = list.find(t => t.id === String(id));
             if (!todo) return;
             
             showConfirm(
                 'Delete Task?',
                 `"${todo.title}" will be permanently deleted.`,
                 async () => {
-                    if (fromCompleted) {
-                        state.completed.todos = state.completed.todos.filter(t => t.id !== id);
-                        if (await saveCompleted()) {
-                            showToast('Task deleted!', 'success');
-                            renderAll();
-                        }
-                    } else {
-                        state.todos.todos = state.todos.todos.filter(t => t.id !== id);
-                        if (await saveTodos()) {
-                            showToast('Task deleted!', 'success');
-                            renderAll();
-                        }
+                    setSyncStatus('syncing');
+                    try {
+                        const collection = fromCompleted ? completedCollection : todosCollection;
+                        await collection.doc(String(id)).delete();
+                        showToast('Task deleted!', 'success');
+                    } catch (error) {
+                        console.error('Error deleting todo:', error);
+                        showToast('Failed to delete task.', 'error');
+                        setSyncStatus('error');
                     }
                 }
             );
         }
 
         async function toggleComplete(id, fromCompleted = false) {
-            if (fromCompleted) {
-                // Moving from completed back to active
-                const todoIndex = state.completed.todos.findIndex(t => t.id === id);
-                if (todoIndex === -1) return;
-                
-                const todo = state.completed.todos[todoIndex];
-                todo.isCompleted = false;
-                todo.completedAt = null;
-                
-                // Remove from completed, add to active
-                state.completed.todos.splice(todoIndex, 1);
-                state.todos.todos.push(todo);
-                
-                await Promise.all([saveTodos(), saveCompleted()]);
-                showToast('Task moved back to active!', 'success');
-                renderAll();
-            } else {
-                // Moving from active to completed
-                const todoIndex = state.todos.todos.findIndex(t => t.id === id);
-                if (todoIndex === -1) return;
-                
-                const todo = state.todos.todos[todoIndex];
-                todo.isCompleted = true;
-                todo.completedAt = new Date().toISOString();
-                
-                // Handle recurring tasks
-                if (todo.recurring) {
-                    const newDueDate = calculateNextDueDate(todo.dueDate, todo.recurring);
-                    if (newDueDate) {
-                        // Create new recurring task (keep in active)
-                        const newTodo = {
-                            ...todo,
-                            id: state.todos.nextId++,
-                            isCompleted: false,
-                            completedAt: null,
-                            dueDate: newDueDate,
-                            createdAt: new Date().toISOString()
-                        };
-                        state.todos.todos.push(newTodo);
-                        showToast('Recurring task created for next period!', 'success');
+            setSyncStatus('syncing');
+            try {
+                if (fromCompleted) {
+                    // Moving from completed back to active
+                    const todo = state.completed.find(t => t.id === String(id));
+                    if (!todo) return;
+                    
+                    const todoData = { ...todo };
+                    delete todoData.completedAt;
+                    delete todoData.id;
+                    todoData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                    
+                    // Add to active, remove from completed
+                    await todosCollection.doc(String(id)).set(todoData);
+                    await completedCollection.doc(String(id)).delete();
+                    
+                    showToast('Task moved back to active!', 'success');
+                } else {
+                    // Moving from active to completed
+                    const todo = state.todos.find(t => t.id === String(id));
+                    if (!todo) return;
+                    
+                    const todoData = { ...todo };
+                    delete todoData.id;
+                    todoData.completedAt = firebase.firestore.FieldValue.serverTimestamp();
+                    
+                    // Handle recurring tasks
+                    if (todo.recurring && todo.dueDate) {
+                        const newDueDate = calculateNextDueDate(todo.dueDate, todo.recurring);
+                        if (newDueDate) {
+                            // Create new recurring task
+                            const newTodoId = state.nextTodoId++;
+                            await todosCollection.doc(String(newTodoId)).set({
+                                title: todo.title,
+                                description: todo.description || '',
+                                assignedElders: todo.assignedElders || [],
+                                dueDate: newDueDate,
+                                priority: todo.priority || 'medium',
+                                isStarred: todo.isStarred || false,
+                                recurring: todo.recurring,
+                                order: state.todos.length,
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                            await saveConfig();
+                            showToast('Recurring task created for next period!', 'success');
+                        }
                     }
+                    
+                    // Add to completed, remove from active
+                    await completedCollection.doc(String(id)).set(todoData);
+                    await todosCollection.doc(String(id)).delete();
+                    
+                    showToast('Task completed!', 'success');
                 }
-                
-                // Remove from active, add to completed
-                state.todos.todos.splice(todoIndex, 1);
-                state.completed.todos.unshift(todo);
-                
-                await Promise.all([saveTodos(), saveCompleted()]);
-                showToast('Task completed!', 'success');
-                renderAll();
+            } catch (error) {
+                console.error('Error toggling complete:', error);
+                showToast('Failed to update task.', 'error');
+                setSyncStatus('error');
             }
         }
 
         async function toggleStar(id, fromCompleted = false) {
-            const list = fromCompleted ? state.completed.todos : state.todos.todos;
-            const todo = list.find(t => t.id === id);
-            if (todo) {
-                todo.isStarred = !todo.isStarred;
-                if (fromCompleted) {
-                    await saveCompleted();
-                } else {
-                    await saveTodos();
+            setSyncStatus('syncing');
+            try {
+                const list = fromCompleted ? state.completed : state.todos;
+                const todo = list.find(t => t.id === String(id));
+                if (todo) {
+                    const collection = fromCompleted ? completedCollection : todosCollection;
+                    await collection.doc(String(id)).update({
+                        isStarred: !todo.isStarred
+                    });
                 }
-                renderAll();
+            } catch (error) {
+                console.error('Error toggling star:', error);
+                showToast('Failed to update task.', 'error');
+                setSyncStatus('error');
             }
         }
 
@@ -1948,7 +1834,7 @@
             
             // Update order values
             todos.forEach((todo, index) => {
-                const originalTodo = state.todos.todos.find(t => t.id === todo.id);
+                const originalTodo = state.todos.find(t => t.id === todo.id);
                 if (originalTodo) {
                     originalTodo.order = index;
                 }
@@ -1962,7 +1848,7 @@
            FILTERING & SORTING
            ============================================ */
         function getFilteredTodos() {
-            let todos = [...state.todos.todos];
+            let todos = [...state.todos];
             
             // Search filter
             if (state.searchQuery) {
@@ -2052,8 +1938,8 @@
         }
 
         function updateStats() {
-            const activeTodos = state.todos.todos;
-            const completedTodos = state.completed.todos;
+            const activeTodos = state.todos;
+            const completedTodos = state.completed;
             const active = activeTodos.length;
             const completed = completedTodos.length;
             const starred = activeTodos.filter(t => t.isStarred).length;
@@ -2089,7 +1975,7 @@
                 const { groups, unassigned } = groupTodosByElder(todos);
                 let html = '';
                 
-                state.elders.elders.forEach(elder => {
+                state.elders.forEach(elder => {
                     const elderTodos = groups.get(elder.id) || [];
                     if (elderTodos.length > 0) {
                         html += `<div class="group-header">${elder.name}<span class="group-count">${elderTodos.length}</span></div>`;
@@ -2129,7 +2015,7 @@
 
         function renderCompletedTodos() {
             const container = document.getElementById('completedList');
-            let todos = [...state.completed.todos];
+            let todos = [...state.completed];
             
             // Apply search filter
             if (state.searchQuery) {
@@ -2152,7 +2038,7 @@
         }
 
         function renderTodoCard(todo, index, listType) {
-            const elder = id => state.elders.elders.find(e => e.id === id);
+            const elder = id => state.elders.find(e => String(e.id) === String(id));
             const dueDateClass = getDueDateClass(todo.dueDate);
             const priorityLabel = { high: 'High', medium: 'Medium', low: 'Low' };
             const recurringLabel = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' };
@@ -2161,13 +2047,13 @@
             return `
                 <div class="todo-card ${isCompleted ? 'completed' : ''}" data-id="${todo.id}" data-index="${index}" draggable="${!isCompleted}">
                     <div class="todo-header">
-                        <div class="todo-checkbox ${isCompleted ? 'checked' : ''}" onclick="toggleComplete(${todo.id}, ${isCompleted})">
+                        <div class="todo-checkbox ${isCompleted ? 'checked' : ''}" onclick="toggleComplete('${todo.id}', ${isCompleted})">
                             ${isCompleted ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
                         </div>
                         <div class="todo-info">
                             <div class="todo-title-row">
                                 <span class="todo-title">${escapeHtml(todo.title)}</span>
-                                <svg class="todo-star ${todo.isStarred ? 'starred' : ''}" width="18" height="18" viewBox="0 0 24 24" fill="${todo.isStarred ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" onclick="toggleStar(${todo.id}, ${isCompleted})">
+                                <svg class="todo-star ${todo.isStarred ? 'starred' : ''}" width="18" height="18" viewBox="0 0 24 24" fill="${todo.isStarred ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" onclick="toggleStar('${todo.id}', ${isCompleted})">
                                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                                 </svg>
                             </div>
@@ -2189,7 +2075,7 @@
                     </div>
                     <div class="todo-actions">
                         ${!isCompleted ? `
-                        <button class="todo-action-btn" onclick="openEditTodo(${todo.id})">
+                        <button class="todo-action-btn" onclick="openEditTodo('${todo.id}')">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -2197,7 +2083,7 @@
                             Edit
                         </button>
                         ` : ''}
-                        <button class="todo-action-btn delete" onclick="deleteTodo(${todo.id}, ${isCompleted})">
+                        <button class="todo-action-btn delete" onclick="deleteTodo('${todo.id}', ${isCompleted})">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="3 6 5 6 21 6"/>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -2212,13 +2098,14 @@
         function renderElders() {
             const container = document.getElementById('elderList');
             
-            if (state.elders.elders.length === 0) {
+            if (state.elders.length === 0) {
                 container.innerHTML = renderEmptyState('No elders', 'Add elders to assign tasks');
                 return;
             }
             
-            container.innerHTML = state.elders.elders.map(elder => {
-                const taskCount = state.todos.todos.filter(t => t.assignedElders.includes(elder.id) && !t.isCompleted).length;
+            container.innerHTML = state.elders.map(elder => {
+                const elderId = Number(elder.id);
+                const taskCount = state.todos.filter(t => t.assignedElders && t.assignedElders.includes(elderId)).length;
                 const initial = elder.name.charAt(0).toUpperCase();
                 
                 return `
@@ -2229,13 +2116,13 @@
                             <div class="elder-task-count">${taskCount} active task${taskCount !== 1 ? 's' : ''}</div>
                         </div>
                         <div class="elder-actions">
-                            <button class="elder-btn" onclick="openEditElder(${elder.id})" title="Edit">
+                            <button class="elder-btn" onclick="openEditElder('${elder.id}')" title="Edit">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                                 </svg>
                             </button>
-                            <button class="elder-btn delete" onclick="deleteElder(${elder.id})" title="Delete">
+                            <button class="elder-btn delete" onclick="deleteElder('${elder.id}')" title="Delete">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <polyline points="3 6 5 6 21 6"/>
                                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -2249,7 +2136,7 @@
 
         function renderElderCheckboxes() {
             const container = document.getElementById('elderCheckboxes');
-            container.innerHTML = state.elders.elders.map(elder => `
+            container.innerHTML = state.elders.map(elder => `
                 <div class="form-checkbox-item" data-elder-id="${elder.id}">
                     <input type="checkbox" name="elder" value="${elder.id}" style="display:none;">
                     <span>${escapeHtml(elder.name)}</span>
@@ -2331,7 +2218,7 @@
         }
 
         function openEditTodo(id) {
-            const todo = state.todos.todos.find(t => t.id === id);
+            const todo = state.todos.find(t => String(t.id) === String(id));
             if (!todo) return;
             
             state.editingTodoId = id;
@@ -2340,18 +2227,18 @@
             document.getElementById('todoTitle').value = todo.title;
             document.getElementById('todoDescription').value = todo.description || '';
             document.getElementById('todoDueDate').value = todo.dueDate || '';
-            document.getElementById('todoPriority').value = todo.priority;
+            document.getElementById('todoPriority').value = todo.priority || 'medium';
             document.getElementById('todoRecurring').value = todo.recurring || '';
-            document.getElementById('todoStarred').checked = todo.isStarred;
+            document.getElementById('todoStarred').checked = todo.isStarred || false;
             
             document.querySelectorAll('#elderCheckboxes .form-checkbox-item').forEach(item => {
                 const elderId = parseInt(item.dataset.elderId);
-                const isSelected = todo.assignedElders.includes(elderId);
+                const isSelected = todo.assignedElders && todo.assignedElders.includes(elderId);
                 item.classList.toggle('selected', isSelected);
                 item.querySelector('input').checked = isSelected;
             });
             
-            document.getElementById('starredCheckbox').classList.toggle('selected', todo.isStarred);
+            document.getElementById('starredCheckbox').classList.toggle('selected', todo.isStarred || false);
             document.getElementById('todoModal').classList.add('active');
         }
 
@@ -2395,7 +2282,7 @@
         }
 
         function openEditElder(id) {
-            const elder = state.elders.elders.find(e => e.id === id);
+            const elder = state.elders.find(e => String(e.id) === String(id));
             if (!elder) return;
             
             document.getElementById('editElderId').value = id;
@@ -2408,7 +2295,7 @@
         }
 
         async function saveElderForm() {
-            const id = parseInt(document.getElementById('editElderId').value);
+            const id = document.getElementById('editElderId').value;
             const name = document.getElementById('editElderName').value.trim();
             
             if (!name) {
@@ -2519,6 +2406,176 @@
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
+
+        /* ============================================
+           AUTO RELOAD MANAGEMENT
+           ============================================ */
+        const AUTO_RELOAD_MINUTES = 20;
+        let lastActivityTime = Date.now();
+        let autoReloadInterval = null;
+
+        function resetActivityTimer() {
+            lastActivityTime = Date.now();
+        }
+
+        function isFormDirty() {
+            const todoModal = document.getElementById('todoModal');
+            const elderModal = document.getElementById('elderModal');
+            
+            if (todoModal && todoModal.classList.contains('active')) {
+                const titleInput = document.getElementById('todoTitle');
+                if (titleInput && titleInput.value.trim()) return true;
+            }
+            
+            if (elderModal && elderModal.classList.contains('active')) {
+                return true;
+            }
+            
+            return false;
+        }
+
+        function checkAutoReload() {
+            const inactiveMinutes = (Date.now() - lastActivityTime) / (1000 * 60);
+            if (inactiveMinutes >= AUTO_RELOAD_MINUTES && !isFormDirty()) {
+                location.reload();
+            }
+        }
+
+        function initAutoReload() {
+            ['click', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+                document.addEventListener(event, resetActivityTimer, { passive: true });
+            });
+            autoReloadInterval = setInterval(checkAutoReload, 60 * 1000);
+        }
+
+        /* ============================================
+           DUMMY DATA POPULATION (run once)
+           ============================================ */
+        async function populateDummyData() {
+            const confirmation = confirm('This will populate Firebase with dummy data. Continue?');
+            if (!confirmation) return;
+            
+            setSyncStatus('syncing');
+            showToast('Populating data...', 'info');
+            
+            try {
+                // Add elders
+                const elders = [
+                    { name: 'Joseph' },
+                    { name: 'Ulaganathan' },
+                    { name: 'Devakumar' },
+                    { name: 'Sivakumar' },
+                    { name: 'Jeyant' }
+                ];
+                
+                for (let i = 0; i < elders.length; i++) {
+                    await eldersCollection.doc(String(i + 1)).set({
+                        name: elders[i].name,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+                
+                // Add active todos
+                const todos = [
+                    {
+                        title: 'Prepare Sunday Service',
+                        description: 'Coordinate with worship team and prepare sermon notes',
+                        assignedElders: [1, 3],
+                        dueDate: '2026-01-26',
+                        priority: 'high',
+                        recurring: 'weekly',
+                        isStarred: true
+                    },
+                    {
+                        title: 'Visit Mrs. Lakshmi',
+                        description: 'Hospital visit and prayer for healing',
+                        assignedElders: [2, 4],
+                        dueDate: '2026-01-22',
+                        priority: 'high',
+                        isStarred: true
+                    },
+                    {
+                        title: 'Youth Fellowship Planning',
+                        description: 'Plan activities for upcoming youth meeting',
+                        assignedElders: [5],
+                        dueDate: '2026-01-28',
+                        priority: 'medium',
+                        recurring: 'monthly',
+                        isStarred: false
+                    },
+                    {
+                        title: 'Budget Review Meeting',
+                        description: 'Review Q1 expenses and plan Q2 budget',
+                        assignedElders: [1, 2, 3, 4, 5],
+                        dueDate: '2026-01-30',
+                        priority: 'medium',
+                        isStarred: false
+                    },
+                    {
+                        title: 'New Member Follow-up',
+                        description: 'Call and welcome new members who joined last month',
+                        assignedElders: [2, 3],
+                        dueDate: '2026-01-25',
+                        priority: 'low',
+                        isStarred: false
+                    }
+                ];
+                
+                for (let i = 0; i < todos.length; i++) {
+                    await todosCollection.doc(String(i + 1)).set({
+                        ...todos[i],
+                        recurring: todos[i].recurring || null,
+                        order: i,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+                
+                // Add completed todos
+                const completed = [
+                    {
+                        title: 'Annual General Meeting',
+                        description: 'AGM preparation and documentation',
+                        assignedElders: [1, 2, 3, 4, 5],
+                        dueDate: '2026-01-15',
+                        priority: 'high',
+                        isStarred: true
+                    },
+                    {
+                        title: 'Christmas Celebration',
+                        description: 'Organize Christmas service and carol singing',
+                        assignedElders: [2, 5],
+                        dueDate: '2025-12-25',
+                        priority: 'high',
+                        isStarred: false
+                    }
+                ];
+                
+                for (let i = 0; i < completed.length; i++) {
+                    await completedCollection.doc(String(100 + i + 1)).set({
+                        ...completed[i],
+                        recurring: null,
+                        completedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+                
+                // Save config
+                await configCollection.doc('appData').set({
+                    nextTodoId: 6,
+                    nextElderId: 6
+                });
+                
+                showToast('Dummy data populated successfully!', 'success');
+                setSyncStatus('synced');
+                
+            } catch (error) {
+                console.error('Error populating data:', error);
+                showToast('Failed to populate data: ' + error.message, 'error');
+                setSyncStatus('error');
+            }
+        }
+        
+        // Expose to console for easy access
+        window.populateDummyData = populateDummyData;
 
         /* ============================================
            EVENT LISTENERS
