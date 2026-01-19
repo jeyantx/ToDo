@@ -2435,6 +2435,12 @@
            RENDERING
            ============================================ */
         function renderAll() {
+            // Skip rendering if modal is open to prevent disruption while filling form
+            const todoModal = document.getElementById('todoModal');
+            if (todoModal && todoModal.classList.contains('active')) {
+                return;
+            }
+            
             updateStats();
             renderTabs();
             
@@ -2810,6 +2816,8 @@
         function closeTodoModal() {
             document.getElementById('todoModal').classList.remove('active');
             state.editingTodoId = null;
+            // Render to sync any changes that occurred while modal was open
+            renderAll();
         }
 
         async function saveTodoForm() {
