@@ -2174,14 +2174,16 @@
             const unassigned = [];
             
             todos.forEach(todo => {
-                if (todo.assignedElders.length === 0) {
+                if (!todo.assignedElders || todo.assignedElders.length === 0) {
                     unassigned.push(todo);
                 } else {
                     todo.assignedElders.forEach(elderId => {
-                        if (!groups.has(elderId)) {
-                            groups.set(elderId, []);
+                        // Convert to string to match Firestore document IDs
+                        const key = String(elderId);
+                        if (!groups.has(key)) {
+                            groups.set(key, []);
                         }
-                        groups.get(elderId).push(todo);
+                        groups.get(key).push(todo);
                     });
                 }
             });
@@ -2298,7 +2300,7 @@
                 let html = '';
                 
                 state.elders.forEach(elder => {
-                    const elderTodos = groups.get(elder.id) || [];
+                    const elderTodos = groups.get(String(elder.id)) || [];
                     if (elderTodos.length > 0) {
                         html += `<div class="group-header">${escapeHtml(elder.name)}<span class="group-count">${elderTodos.length}</span></div>`;
                         elderTodos.forEach((todo, index) => {
