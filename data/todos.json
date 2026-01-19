@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "lastUpdated": "2026-01-19T18:58:36.616Z",
-  "nextId": 7,
+  "lastUpdated": "2026-01-19T19:01:42.241Z",
+  "nextId": 6,
   "todos": [
     {
       "id": 1,
@@ -72,22 +72,8 @@
       "dueDate": "2026-01-21",
       "priority": "low",
       "recurring": "",
-      "isStarred": false,
+      "isStarred": true,
       "createdAt": "2026-01-20T07:00:00Z"
-    },
-    {
-      "id": 6,
-      "title": "Test Token Save",
-      "description": "",
-      "assignedElders": [],
-      "dueDate": null,
-      "priority": "medium",
-      "isStarred": false,
-      "isCompleted": false,
-      "completedAt": null,
-      "createdAt": "2026-01-19T18:58:36.616Z",
-      "recurring": null,
-      "order": 5
     }
   ]
 }
