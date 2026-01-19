@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "lastUpdated": "2026-01-19T19:01:42.241Z",
+  "version": 3,
+  "lastUpdated": "2026-01-19T19:02:43.216Z",
   "nextId": 6,
   "todos": [
     {
@@ -41,7 +41,7 @@
       "dueDate": "2026-01-28",
       "priority": "medium",
       "recurring": "monthly",
-      "isStarred": false,
+      "isStarred": true,
       "createdAt": "2026-01-19T14:00:00Z"
     },
     {
