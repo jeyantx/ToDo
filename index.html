@@ -403,14 +403,14 @@
         }
 
         .group-checkbox {
-            background: var(--warning-light) !important;
-            border-color: var(--warning) !important;
-            color: var(--gray-700) !important;
+            background: white !important;
+            border: 2px dashed var(--warning) !important;
+            color: var(--gray-600) !important;
         }
 
         .group-checkbox.selected {
             background: var(--warning) !important;
-            border-color: var(--warning) !important;
+            border: 2px solid var(--warning) !important;
             color: white !important;
         }
 
@@ -1874,7 +1874,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="cancelElderBtn" data-i18n="cancel">Cancel</button>
-                <button class="btn btn-primary" id="saveElderBtn" data-i18n="save">Save</button>
+                <button class="btn btn-primary" id="saveElderBtn" data-i18n="saveElder">Save Elder</button>
             </div>
         </div>
     </div>
@@ -2150,7 +2150,8 @@
                 activeTask: 'active task',
                 activeTasks: 'active tasks',
                 unassigned: 'Unassigned',
-                signOut: 'Sign Out'
+                signOut: 'Sign Out',
+                saveElder: 'Save Elder'
             },
             ta: {
                 appTitle: 'மூப்பர் பணிகள்',
@@ -2236,7 +2237,8 @@
                 activeTask: 'பணி',
                 activeTasks: 'பணிகள்',
                 unassigned: 'ஒதுக்கப்படவில்லை',
-                signOut: 'வெளியேறு'
+                signOut: 'வெளியேறு',
+                saveElder: 'மூப்பரை சேமி'
             }
         };
 
@@ -3768,21 +3770,9 @@
                 if (e.target.classList.contains('modal-overlay')) closeElderModal();
             });
             
-            // Elder modal checkboxes
-            document.getElementById('elderServiceCommittee').addEventListener('click', (e) => {
-                if (e.target.tagName !== 'INPUT') {
-                    const checkbox = document.getElementById('editElderServiceCommittee');
-                    checkbox.checked = !checkbox.checked;
-                }
-                updateElderModalCheckboxUI();
-            });
-            document.getElementById('elderKhoc').addEventListener('click', (e) => {
-                if (e.target.tagName !== 'INPUT') {
-                    const checkbox = document.getElementById('editElderKhoc');
-                    checkbox.checked = !checkbox.checked;
-                }
-                updateElderModalCheckboxUI();
-            });
+            // Elder modal checkboxes - use change event
+            document.getElementById('editElderServiceCommittee').addEventListener('change', updateElderModalCheckboxUI);
+            document.getElementById('editElderKhoc').addEventListener('change', updateElderModalCheckboxUI);
             
             // Add Elder Form
             document.getElementById('addElderForm').addEventListener('submit', (e) => {
