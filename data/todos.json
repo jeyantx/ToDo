@@ -1,7 +1,7 @@
 {
-  "version": 3,
-  "lastUpdated": "2026-01-19T19:02:43.216Z",
-  "nextId": 6,
+  "version": 4,
+  "lastUpdated": "2026-01-19T19:27:19.281Z",
+  "nextId": 7,
   "todos": [
     {
       "id": 1,
@@ -74,6 +74,22 @@
       "recurring": "",
       "isStarred": true,
       "createdAt": "2026-01-20T07:00:00Z"
+    },
+    {
+      "id": 6,
+      "title": "Firebase Test Task",
+      "description": "",
+      "assignedElders": [
+        1
+      ],
+      "dueDate": null,
+      "priority": "medium",
+      "isStarred": false,
+      "isCompleted": false,
+      "completedAt": null,
+      "createdAt": "2026-01-19T19:27:19.281Z",
+      "recurring": null,
+      "order": 5
     }
   ]
 }
