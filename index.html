@@ -287,6 +287,68 @@
             color: white;
         }
 
+        .user-name {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.9);
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .group-checkbox {
+            background: var(--warning-light) !important;
+            border-color: var(--warning) !important;
+            color: var(--gray-700) !important;
+        }
+
+        .group-checkbox.selected {
+            background: var(--warning) !important;
+            border-color: var(--warning) !important;
+            color: white !important;
+        }
+
+        .elder-badges {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .elder-badge {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: var(--primary-100);
+            color: var(--primary-700);
+        }
+
+        .elder-badge.sc {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .elder-badge.khoc {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
         /* Stats Bar */
         .stats-bar {
             display: flex;
@@ -1402,6 +1464,9 @@
             </div>
             <h1 class="password-title" data-i18n="appTitle">Elder ToDo</h1>
             <p class="password-subtitle" data-i18n="enterPassword">Enter password to continue</p>
+            <div class="form-group" style="margin-bottom: 16px;">
+                <input type="text" class="password-input" id="usernameInput" placeholder="Your Name" autocomplete="off" style="letter-spacing: normal; font-size: 1rem;">
+            </div>
             <div class="password-input-group">
                 <input type="password" class="password-input" id="passwordInput" placeholder="••••••" maxlength="10" inputmode="numeric" autocomplete="off">
                 <button class="password-submit" id="passwordSubmit">
@@ -1427,10 +1492,18 @@
                     <span data-i18n="appTitle">Elder ToDo</span>
                 </h1>
                 <div class="header-controls">
+                    <span class="user-name" id="currentUserName"></span>
                     <select class="lang-selector" id="langSelector">
                         <option value="en">English</option>
                         <option value="ta">தமிழ்</option>
                     </select>
+                    <button class="logout-btn" id="logoutBtn" title="Logout">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                    </button>
                     <div class="sync-status">
                         <span class="sync-dot" id="syncDot"></span>
                         <span id="syncText">Synced</span>
@@ -1492,6 +1565,15 @@
                 <span data-i18n="starred">Starred</span>
                 <span class="tab-badge" id="tabBadgeStarred">0</span>
             </button>
+            <button class="tab" data-tab="unassigned">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span data-i18n="unassignedTab">Unassigned</span>
+                <span class="tab-badge" id="tabBadgeUnassigned">0</span>
+            </button>
             <button class="tab" data-tab="completed">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="9 11 12 14 22 4"/>
@@ -1517,6 +1599,7 @@
             <div class="tab-content active" id="tab-active">
                 <div class="filter-bar">
                     <select class="filter-select" id="sortSelect">
+                        <option value="default">Default (Smart)</option>
                         <option value="createdAt-desc">Newest First</option>
                         <option value="createdAt-asc">Oldest First</option>
                         <option value="dueDate-asc">Due Date (Earliest)</option>
@@ -1553,6 +1636,11 @@
             <!-- Starred Tab -->
             <div class="tab-content" id="tab-starred">
                 <div class="todo-list" id="starredList"></div>
+            </div>
+
+            <!-- Unassigned Tab -->
+            <div class="tab-content" id="tab-unassigned">
+                <div class="todo-list" id="unassignedList"></div>
             </div>
 
             <!-- Completed Tab -->
@@ -1626,8 +1714,18 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" data-i18n="assignToElders">Assign to Elders</label>
-                        <div class="form-checkbox-group" id="elderCheckboxes"></div>
+                        <label class="form-label" data-i18n="assignToElders">Assign to</label>
+                        <div class="form-checkbox-group" id="groupCheckboxes">
+                            <div class="form-checkbox-item group-checkbox" data-group="serviceCommittee">
+                                <input type="checkbox" name="group" value="serviceCommittee" style="display:none;">
+                                <span data-i18n="serviceCommittee">Service Committee</span>
+                            </div>
+                            <div class="form-checkbox-item group-checkbox" data-group="khoc">
+                                <input type="checkbox" name="group" value="khoc" style="display:none;">
+                                <span data-i18n="khoc">KHOC</span>
+                            </div>
+                        </div>
+                        <div class="form-checkbox-group" id="elderCheckboxes" style="margin-top: 8px;"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-checkbox-item" id="starredCheckbox">
@@ -1651,7 +1749,7 @@
     <div class="modal-overlay" id="elderModal">
         <div class="modal">
             <div class="modal-header">
-                <h2 class="modal-title">Edit Elder</h2>
+                <h2 class="modal-title" data-i18n="editElder">Edit Elder</h2>
                 <button class="modal-close" id="closeElderModal">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"/>
@@ -1662,13 +1760,26 @@
             <div class="modal-body">
                 <input type="hidden" id="editElderId">
                 <div class="form-group">
-                    <label class="form-label">Elder Name</label>
+                    <label class="form-label" data-i18n="elderName">Elder Name</label>
                     <input type="text" class="form-input" id="editElderName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" data-i18n="memberOf">Member of</label>
+                    <div class="form-checkbox-group">
+                        <label class="form-checkbox-item" id="elderServiceCommittee">
+                            <input type="checkbox" id="editElderServiceCommittee">
+                            <span data-i18n="serviceCommittee">Service Committee</span>
+                        </label>
+                        <label class="form-checkbox-item" id="elderKhoc">
+                            <input type="checkbox" id="editElderKhoc">
+                            <span data-i18n="khoc">KHOC</span>
+                        </label>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancelElderBtn">Cancel</button>
-                <button class="btn btn-primary" id="saveElderBtn">Save</button>
+                <button class="btn btn-secondary" id="cancelElderBtn" data-i18n="cancel">Cancel</button>
+                <button class="btn btn-primary" id="saveElderBtn" data-i18n="save">Save</button>
             </div>
         </div>
     </div>
@@ -1728,9 +1839,9 @@
         /* ============================================
            PASSWORD PROTECTION
            ============================================ */
-        const APP_PASSWORD = '242424';
         const AUTH_KEY = 'elderTodoAuth';
         const AUTH_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+        let appPassword = null; // Will be loaded from Firebase
 
         function isAuthenticated() {
             const authData = localStorage.getItem(AUTH_KEY);
@@ -1750,26 +1861,73 @@
             }
         }
 
-        function setAuthenticated() {
+        function setAuthenticated(userName) {
             localStorage.setItem(AUTH_KEY, JSON.stringify({
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                userName: userName
             }));
+            localStorage.setItem('todoUserName', userName);
+        }
+
+        function getCurrentUserName() {
+            return localStorage.getItem('todoUserName') || '';
         }
 
         function showApp() {
             document.getElementById('passwordScreen').classList.add('hidden');
             document.getElementById('appContainer').style.display = '';
+            // Display current user name
+            const userName = getCurrentUserName();
+            document.getElementById('currentUserName').textContent = userName;
         }
 
-        function initPasswordScreen() {
+        function logout() {
+            localStorage.removeItem(AUTH_KEY);
+            localStorage.removeItem('todoUserName');
+            localStorage.removeItem('myElderId');
+            location.reload();
+        }
+
+        async function loadPasswordFromFirebase() {
+            try {
+                const doc = await configCollection.doc('appData').get();
+                if (doc.exists && doc.data().password) {
+                    appPassword = doc.data().password;
+                } else {
+                    // Set default password if not exists
+                    appPassword = '242424';
+                    await configCollection.doc('appData').set({ password: appPassword }, { merge: true });
+                }
+            } catch (error) {
+                console.error('Error loading password:', error);
+                appPassword = '242424'; // Fallback
+            }
+        }
+
+        async function initPasswordScreen() {
+            await loadPasswordFromFirebase();
+            
+            const usernameInput = document.getElementById('usernameInput');
             const passwordInput = document.getElementById('passwordInput');
             const passwordSubmit = document.getElementById('passwordSubmit');
             const passwordError = document.getElementById('passwordError');
 
-            function checkPassword() {
-                const entered = passwordInput.value;
-                if (entered === APP_PASSWORD) {
-                    setAuthenticated();
+            async function checkPassword() {
+                const enteredPassword = passwordInput.value;
+                const enteredName = usernameInput.value.trim();
+                
+                if (!enteredName) {
+                    passwordError.textContent = currentLang === 'ta' ? 'பெயரை உள்ளிடவும்' : 'Please enter your name';
+                    usernameInput.focus();
+                    usernameInput.classList.add('shake');
+                    setTimeout(() => usernameInput.classList.remove('shake'), 500);
+                    return;
+                }
+                
+                if (enteredPassword === appPassword) {
+                    setAuthenticated(enteredName);
+                    // Auto-select elder based on name match
+                    autoSelectElderByName(enteredName);
                     showApp();
                 } else {
                     passwordError.textContent = currentLang === 'ta' ? 'தவறான கடவுச்சொல்' : 'Incorrect password';
@@ -1784,8 +1942,26 @@
             passwordInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') checkPassword();
             });
+            usernameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') passwordInput.focus();
+            });
             
-            passwordInput.focus();
+            usernameInput.focus();
+        }
+
+        function autoSelectElderByName(userName) {
+            // Will be called after elders are loaded
+            setTimeout(() => {
+                const lowerName = userName.toLowerCase();
+                const matchingElder = state.elders.find(e => 
+                    e.name.toLowerCase().includes(lowerName) || 
+                    lowerName.includes(e.name.toLowerCase())
+                );
+                if (matchingElder) {
+                    state.myElderId = matchingElder.id;
+                    localStorage.setItem('myElderId', matchingElder.id);
+                }
+            }, 2000);
         }
 
         /* ============================================
@@ -1822,6 +1998,7 @@
                 daily: 'Daily',
                 weekly: 'Weekly',
                 monthly: 'Monthly',
+                defaultSort: 'Default (Smart)',
                 newestFirst: 'Newest First',
                 oldestFirst: 'Oldest First',
                 dueDateEarliest: 'Due Date (Earliest)',
@@ -1829,6 +2006,15 @@
                 priorityHighToLow: 'Priority (High to Low)',
                 priorityLowToHigh: 'Priority (Low to High)',
                 groupByElder: 'Group by Elder',
+                unassignedTab: 'Unassigned',
+                noUnassignedTasks: 'No unassigned tasks',
+                allTasksAssigned: 'All tasks are assigned to elders',
+                serviceCommittee: 'Service Committee',
+                khoc: 'KHOC',
+                memberOf: 'Member of',
+                editElder: 'Edit Elder',
+                elderName: 'Elder Name',
+                enterYourName: 'Your Name',
                 enterPassword: 'Enter password to continue',
                 incorrectPassword: 'Incorrect password',
                 noActiveTasks: 'No active tasks',
@@ -1897,6 +2083,7 @@
                 daily: 'தினமும்',
                 weekly: 'வாரந்தோறும்',
                 monthly: 'மாதந்தோறும்',
+                defaultSort: 'இயல்புநிலை (திறன்)',
                 newestFirst: 'புதியது முதலில்',
                 oldestFirst: 'பழையது முதலில்',
                 dueDateEarliest: 'முடிவு தேதி (முதலில்)',
@@ -1904,6 +2091,15 @@
                 priorityHighToLow: 'முக்கியத்துவம் (அதிகம் முதல் குறைவு வரை)',
                 priorityLowToHigh: 'முக்கியத்துவம் (குறைவு முதல் அதிகம் வரை)',
                 groupByElder: 'மூப்பர் வாரியாக',
+                unassignedTab: 'நியமிக்கப்படாதவை',
+                noUnassignedTasks: 'நியமிக்கப்படாத பணிகள் இல்லை',
+                allTasksAssigned: 'அனைத்து பணிகளும் மூப்பர்களுக்கு நியமிக்கப்பட்டுள்ளன',
+                serviceCommittee: 'சேவை குழு',
+                khoc: 'KHOC',
+                memberOf: 'உறுப்பினர்',
+                editElder: 'மூப்பரை திருத்து',
+                elderName: 'மூப்பர் பெயர்',
+                enterYourName: 'உங்கள் பெயர்',
                 enterPassword: 'தொடர கடவுச்சொல்லை உள்ளிடவும்',
                 incorrectPassword: 'தவறான கடவுச்சொல்',
                 noActiveTasks: 'பணிகள் இல்லை',
@@ -1971,12 +2167,13 @@
             const sortSelect = document.getElementById('sortSelect');
             if (sortSelect) {
                 const options = sortSelect.options;
-                options[0].text = t('newestFirst');
-                options[1].text = t('oldestFirst');
-                options[2].text = t('dueDateEarliest');
-                options[3].text = t('dueDateLatest');
-                options[4].text = t('priorityHighToLow');
-                options[5].text = t('priorityLowToHigh');
+                options[0].text = t('defaultSort');
+                options[1].text = t('newestFirst');
+                options[2].text = t('oldestFirst');
+                options[3].text = t('dueDateEarliest');
+                options[4].text = t('dueDateLatest');
+                options[5].text = t('priorityHighToLow');
+                options[6].text = t('priorityLowToHigh');
             }
         }
 
@@ -1998,7 +2195,7 @@
             nextElderId: 1,
             currentTab: 'active',
             searchQuery: '',
-            sortBy: 'createdAt-desc',
+            sortBy: 'default',
             groupByElder: false,
             editingTodoId: null,
             confirmCallback: null,
@@ -2101,13 +2298,20 @@
             }
         }
 
-        async function updateElder(id, name) {
-            const trimmedName = name.trim();
-            if (!trimmedName) return;
+        async function updateElder(id, elderData) {
+            const data = typeof elderData === 'string' 
+                ? { name: elderData.trim() } 
+                : { 
+                    name: elderData.name.trim(),
+                    isServiceCommittee: elderData.isServiceCommittee || false,
+                    isKhoc: elderData.isKhoc || false
+                };
+            
+            if (!data.name) return;
             
             setSyncStatus('syncing');
             try {
-                await eldersCollection.doc(String(id)).update({ name: trimmedName });
+                await eldersCollection.doc(String(id)).update(data);
                 showToast('Elder updated!', 'success');
             } catch (error) {
                 console.error('Error updating elder:', error);
@@ -2380,10 +2584,62 @@
         }
 
         function sortTodos(todos) {
+            const priorityOrder = { high: 3, medium: 2, low: 1 };
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const oneWeekFromNow = new Date(today);
+            oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7);
+            
+            // Default smart sort
+            if (state.sortBy === 'default') {
+                return todos.sort((a, b) => {
+                    const aDate = a.dueDate ? new Date(a.dueDate) : null;
+                    const bDate = b.dueDate ? new Date(b.dueDate) : null;
+                    
+                    // Check overdue status
+                    const aOverdue = aDate && aDate < today;
+                    const bOverdue = bDate && bDate < today;
+                    
+                    // Check if due within a week
+                    const aNearDue = aDate && !aOverdue && aDate <= oneWeekFromNow;
+                    const bNearDue = bDate && !bOverdue && bDate <= oneWeekFromNow;
+                    
+                    // Priority 1: Overdue tasks first (sorted by priority)
+                    if (aOverdue && !bOverdue) return -1;
+                    if (!aOverdue && bOverdue) return 1;
+                    if (aOverdue && bOverdue) {
+                        // Both overdue - sort by priority (high first), then by date (oldest overdue first)
+                        const priorityDiff = (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
+                        if (priorityDiff !== 0) return priorityDiff;
+                        return aDate - bDate;
+                    }
+                    
+                    // Priority 2: Near due (within 1 week) sorted by priority
+                    if (aNearDue && !bNearDue) return -1;
+                    if (!aNearDue && bNearDue) return 1;
+                    if (aNearDue && bNearDue) {
+                        // Both near due - sort by priority (high first), then by date
+                        const priorityDiff = (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
+                        if (priorityDiff !== 0) return priorityDiff;
+                        return aDate - bDate;
+                    }
+                    
+                    // Priority 3: Sort by due date (earliest first)
+                    if (aDate && !bDate) return -1;
+                    if (!aDate && bDate) return 1;
+                    if (aDate && bDate) {
+                        const dateDiff = aDate - bDate;
+                        if (dateDiff !== 0) return dateDiff;
+                    }
+                    
+                    // Priority 4: Sort by priority
+                    return (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
+                });
+            }
+            
+            // Other sort options
             const [field, direction] = state.sortBy.split('-');
             const multiplier = direction === 'asc' ? 1 : -1;
-            
-            const priorityOrder = { high: 3, medium: 2, low: 1 };
             
             return todos.sort((a, b) => {
                 let comparison = 0;
@@ -2414,16 +2670,44 @@
             const unassigned = [];
             
             todos.forEach(todo => {
-                if (!todo.assignedElders || todo.assignedElders.length === 0) {
+                const hasDirectAssignment = todo.assignedElders && todo.assignedElders.length > 0;
+                const hasGroupAssignment = todo.assignedGroups && todo.assignedGroups.length > 0;
+                
+                if (!hasDirectAssignment && !hasGroupAssignment) {
                     unassigned.push(todo);
                 } else {
-                    todo.assignedElders.forEach(elderId => {
-                        // Convert to string to match Firestore document IDs
-                        const key = String(elderId);
-                        if (!groups.has(key)) {
-                            groups.set(key, []);
+                    const assignedElderIds = new Set();
+                    
+                    // Add directly assigned elders
+                    if (todo.assignedElders) {
+                        todo.assignedElders.forEach(elderId => {
+                            assignedElderIds.add(String(elderId));
+                        });
+                    }
+                    
+                    // Add elders from group assignments (Service Committee, KHOC)
+                    if (todo.assignedGroups) {
+                        todo.assignedGroups.forEach(group => {
+                            state.elders.forEach(elder => {
+                                if (group === 'serviceCommittee' && elder.isServiceCommittee) {
+                                    assignedElderIds.add(String(elder.id));
+                                }
+                                if (group === 'khoc' && elder.isKhoc) {
+                                    assignedElderIds.add(String(elder.id));
+                                }
+                            });
+                        });
+                    }
+                    
+                    // Group by each assigned elder
+                    assignedElderIds.forEach(elderId => {
+                        if (!groups.has(elderId)) {
+                            groups.set(elderId, []);
                         }
-                        groups.get(key).push(todo);
+                        // Avoid duplicates if same todo assigned via multiple paths
+                        if (!groups.get(elderId).find(t => t.id === todo.id)) {
+                            groups.get(elderId).push(todo);
+                        }
                     });
                 }
             });
@@ -2454,6 +2738,9 @@
                 case 'starred':
                     renderStarredTodos();
                     break;
+                case 'unassigned':
+                    renderUnassignedTodos();
+                    break;
                 case 'completed':
                     renderCompletedTodos();
                     break;
@@ -2472,12 +2759,23 @@
             const active = activeTodos.length;
             const completed = completedTodos.length;
             const starred = activeTodos.filter(t => t.isStarred).length;
+            const unassigned = activeTodos.filter(t => !t.assignedElders || t.assignedElders.length === 0).length;
             
-            // My tasks count
+            // My tasks count - include tasks assigned to groups the user belongs to
             let myTasksCount = 0;
             if (state.myElderId) {
                 const elderId = Number(state.myElderId);
-                myTasksCount = activeTodos.filter(t => t.assignedElders && t.assignedElders.includes(elderId)).length;
+                const elder = state.elders.find(e => String(e.id) === String(state.myElderId));
+                myTasksCount = activeTodos.filter(t => {
+                    if (!t.assignedElders) return false;
+                    // Direct assignment
+                    if (t.assignedElders.includes(elderId)) return true;
+                    // Service Committee assignment
+                    if (t.assignedGroups?.includes('serviceCommittee') && elder?.isServiceCommittee) return true;
+                    // KHOC assignment
+                    if (t.assignedGroups?.includes('khoc') && elder?.isKhoc) return true;
+                    return false;
+                }).length;
             }
             
             document.getElementById('statActive').textContent = active;
@@ -2486,6 +2784,7 @@
             document.getElementById('tabBadgeActive').textContent = active;
             document.getElementById('tabBadgeMyTasks').textContent = myTasksCount;
             document.getElementById('tabBadgeStarred').textContent = starred;
+            document.getElementById('tabBadgeUnassigned').textContent = unassigned;
             document.getElementById('tabBadgeCompleted').textContent = completed;
         }
 
@@ -2509,9 +2808,17 @@
             }
             
             const elderId = Number(state.myElderId);
-            let todos = sortTodos(getFilteredTodos().filter(t => 
-                t.assignedElders && t.assignedElders.includes(elderId)
-            ));
+            const elder = state.elders.find(e => String(e.id) === String(state.myElderId));
+            
+            let todos = sortTodos(getFilteredTodos().filter(todo => {
+                // Direct assignment
+                if (todo.assignedElders && todo.assignedElders.includes(elderId)) return true;
+                // Service Committee assignment
+                if (todo.assignedGroups?.includes('serviceCommittee') && elder?.isServiceCommittee) return true;
+                // KHOC assignment
+                if (todo.assignedGroups?.includes('khoc') && elder?.isKhoc) return true;
+                return false;
+            }));
             
             if (todos.length === 0) {
                 container.innerHTML = renderEmptyState(t('noMyTasks'), t('addTaskToStart'));
@@ -2581,6 +2888,19 @@
             
             container.innerHTML = todos.map((todo, index) => renderTodoCard(todo, index, 'starred')).join('');
             initDragAndDrop(container, 'starred');
+        }
+
+        function renderUnassignedTodos() {
+            const container = document.getElementById('unassignedList');
+            const todos = sortTodos(getFilteredTodos().filter(t => !t.assignedElders || t.assignedElders.length === 0));
+            
+            if (todos.length === 0) {
+                container.innerHTML = renderEmptyState(t('noUnassignedTasks'), t('allTasksAssigned'));
+                return;
+            }
+            
+            container.innerHTML = todos.map((todo, index) => renderTodoCard(todo, index, 'unassigned')).join('');
+            initDragAndDrop(container, 'unassigned');
         }
 
         function renderCompletedTodos() {
@@ -2679,12 +2999,26 @@
                 const initial = elder.name.charAt(0).toUpperCase();
                 const taskLabel = taskCount !== 1 ? t('activeTasks') : t('activeTask');
                 
+                // Build badges HTML
+                let badgesHtml = '';
+                if (elder.isServiceCommittee || elder.isKhoc) {
+                    badgesHtml = '<div class="elder-badges">';
+                    if (elder.isServiceCommittee) {
+                        badgesHtml += `<span class="elder-badge sc">${t('serviceCommittee')}</span>`;
+                    }
+                    if (elder.isKhoc) {
+                        badgesHtml += `<span class="elder-badge khoc">KHOC</span>`;
+                    }
+                    badgesHtml += '</div>';
+                }
+                
                 return `
                     <div class="elder-card">
                         <div class="elder-avatar">${initial}</div>
                         <div class="elder-info">
                             <div class="elder-name">${escapeHtml(elder.name)}</div>
                             <div class="elder-task-count">${taskCount} ${taskLabel}</div>
+                            ${badgesHtml}
                         </div>
                         <div class="elder-actions">
                             <button class="elder-btn" onclick="openEditElder('${elder.id}')" title="${t('edit')}">
@@ -2780,6 +3114,12 @@
             document.getElementById('todoModalTitle').textContent = t('addTask');
             document.getElementById('todoForm').reset();
             document.getElementById('todoId').value = '';
+            // Reset group checkboxes
+            document.querySelectorAll('#groupCheckboxes .group-checkbox').forEach(item => {
+                item.classList.remove('selected');
+                item.querySelector('input').checked = false;
+            });
+            // Reset elder checkboxes
             document.querySelectorAll('#elderCheckboxes .form-checkbox-item').forEach(item => {
                 item.classList.remove('selected');
                 item.querySelector('input').checked = false;
@@ -2802,6 +3142,15 @@
             document.getElementById('todoRecurring').value = todo.recurring || '';
             document.getElementById('todoStarred').checked = todo.isStarred || false;
             
+            // Update group checkboxes
+            document.querySelectorAll('#groupCheckboxes .group-checkbox').forEach(item => {
+                const groupName = item.dataset.group;
+                const isSelected = todo.assignedGroups && todo.assignedGroups.includes(groupName);
+                item.classList.toggle('selected', isSelected);
+                item.querySelector('input').checked = isSelected;
+            });
+            
+            // Update elder checkboxes
             document.querySelectorAll('#elderCheckboxes .form-checkbox-item').forEach(item => {
                 const elderId = parseInt(item.dataset.elderId);
                 const isSelected = todo.assignedElders && todo.assignedElders.includes(elderId);
@@ -2839,6 +3188,11 @@
                 assignedElders.push(parseInt(cb.value));
             });
             
+            const assignedGroups = [];
+            document.querySelectorAll('#groupCheckboxes input:checked').forEach(cb => {
+                assignedGroups.push(cb.value);
+            });
+            
             const todoData = {
                 title,
                 description: document.getElementById('todoDescription').value,
@@ -2846,7 +3200,8 @@
                 priority: document.getElementById('todoPriority').value,
                 recurring: document.getElementById('todoRecurring').value || null,
                 isStarred: document.getElementById('todoStarred').checked,
-                assignedElders
+                assignedElders,
+                assignedGroups
             };
             
             let success;
@@ -2871,7 +3226,23 @@
             
             document.getElementById('editElderId').value = id;
             document.getElementById('editElderName').value = elder.name;
+            document.getElementById('editElderServiceCommittee').checked = elder.isServiceCommittee || false;
+            document.getElementById('editElderKhoc').checked = elder.isKhoc || false;
+            
+            // Update checkbox UI
+            updateElderModalCheckboxUI();
+            
             document.getElementById('elderModal').classList.add('active');
+        }
+        
+        function updateElderModalCheckboxUI() {
+            const scCheckbox = document.getElementById('editElderServiceCommittee');
+            const khocCheckbox = document.getElementById('editElderKhoc');
+            const scLabel = document.getElementById('elderServiceCommittee');
+            const khocLabel = document.getElementById('elderKhoc');
+            
+            scLabel.classList.toggle('selected', scCheckbox.checked);
+            khocLabel.classList.toggle('selected', khocCheckbox.checked);
         }
 
         function closeElderModal() {
@@ -2881,13 +3252,15 @@
         async function saveElderForm() {
             const id = document.getElementById('editElderId').value;
             const name = document.getElementById('editElderName').value.trim();
+            const isServiceCommittee = document.getElementById('editElderServiceCommittee').checked;
+            const isKhoc = document.getElementById('editElderKhoc').checked;
             
             if (!name) {
                 showToast('Please enter a name', 'error');
                 return;
             }
             
-            await updateElder(id, name);
+            await updateElder(id, { name, isServiceCommittee, isKhoc });
             closeElderModal();
         }
 
@@ -3166,12 +3539,12 @@
         /* ============================================
            EVENT LISTENERS
            ============================================ */
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             // Check authentication first
             if (isAuthenticated()) {
                 showApp();
             } else {
-                initPasswordScreen();
+                await initPasswordScreen();
             }
             
             // Initialize language
@@ -3251,6 +3624,16 @@
                 e.currentTarget.classList.toggle('selected', checkbox.checked);
             });
             
+            // Group checkboxes (Service Committee, KHOC) - event delegation
+            document.getElementById('groupCheckboxes').addEventListener('click', (e) => {
+                const item = e.target.closest('.group-checkbox');
+                if (item) {
+                    const checkbox = item.querySelector('input');
+                    checkbox.checked = !checkbox.checked;
+                    item.classList.toggle('selected', checkbox.checked);
+                }
+            });
+            
             // Elder checkboxes - event delegation for reliable touch support
             document.getElementById('elderCheckboxes').addEventListener('click', (e) => {
                 const item = e.target.closest('.form-checkbox-item');
@@ -3261,12 +3644,31 @@
                 }
             });
             
+            // Logout button
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            
             // Elder Modal
             document.getElementById('closeElderModal').addEventListener('click', closeElderModal);
             document.getElementById('cancelElderBtn').addEventListener('click', closeElderModal);
             document.getElementById('saveElderBtn').addEventListener('click', saveElderForm);
             document.getElementById('elderModal').addEventListener('click', (e) => {
                 if (e.target.classList.contains('modal-overlay')) closeElderModal();
+            });
+            
+            // Elder modal checkboxes
+            document.getElementById('elderServiceCommittee').addEventListener('click', (e) => {
+                if (e.target.tagName !== 'INPUT') {
+                    const checkbox = document.getElementById('editElderServiceCommittee');
+                    checkbox.checked = !checkbox.checked;
+                }
+                updateElderModalCheckboxUI();
+            });
+            document.getElementById('elderKhoc').addEventListener('click', (e) => {
+                if (e.target.tagName !== 'INPUT') {
+                    const checkbox = document.getElementById('editElderKhoc');
+                    checkbox.checked = !checkbox.checked;
+                }
+                updateElderModalCheckboxUI();
             });
             
             // Add Elder Form
