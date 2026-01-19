@@ -170,6 +170,8 @@
             border-radius: var(--radius);
             cursor: pointer;
             transition: var(--transition);
+            width: 100%;
+            margin-top:24px;
         }
 
         .password-submit:hover {
@@ -1484,7 +1486,7 @@
                 </svg>
             </div>
             <h1 class="password-title" data-i18n="appTitle">Elder ToDo</h1>
-            <p class="password-subtitle" data-i18n="enterPassword">Enter password to continue</p>
+            <p class="password-subtitle"></p>
             <div class="form-group" style="margin-bottom: 16px;">
                 <select class="password-input" id="usernameInput">
                     <option value="">Select your name</option>
@@ -1492,8 +1494,10 @@
             </div>
             <div class="password-input-group">
                 <input type="password" class="password-input" id="passwordInput" placeholder="••••••" maxlength="10" inputmode="numeric" autocomplete="off">
+            </div>
+            <div class="password-input-group">
                 <button class="password-submit" id="passwordSubmit">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="100" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="5" y1="12" x2="19" y2="12"/>
                         <polyline points="12 5 19 12 12 19"/>
                     </svg>
