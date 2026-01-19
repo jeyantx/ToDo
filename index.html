@@ -2247,22 +2247,11 @@
         function renderElderCheckboxes() {
             const container = document.getElementById('elderCheckboxes');
             container.innerHTML = state.elders.elders.map(elder => `
-                <label class="form-checkbox-item" data-elder-id="${elder.id}">
-                    <input type="checkbox" name="elder" value="${elder.id}">
-                    ${escapeHtml(elder.name)}
-                </label>
+                <div class="form-checkbox-item" data-elder-id="${elder.id}">
+                    <input type="checkbox" name="elder" value="${elder.id}" style="display:none;">
+                    <span>${escapeHtml(elder.name)}</span>
+                </div>
             `).join('');
-            
-            // Add click handlers with better touch support
-            container.querySelectorAll('.form-checkbox-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const checkbox = item.querySelector('input');
-                    checkbox.checked = !checkbox.checked;
-                    item.classList.toggle('selected', checkbox.checked);
-                });
-            });
         }
 
         function renderEmptyState(title, message) {
@@ -2587,11 +2576,19 @@
             
             // Starred checkbox toggle with better touch support
             document.getElementById('starredCheckbox').addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
                 const checkbox = document.getElementById('todoStarred');
                 checkbox.checked = !checkbox.checked;
                 e.currentTarget.classList.toggle('selected', checkbox.checked);
+            });
+            
+            // Elder checkboxes - event delegation for reliable touch support
+            document.getElementById('elderCheckboxes').addEventListener('click', (e) => {
+                const item = e.target.closest('.form-checkbox-item');
+                if (item) {
+                    const checkbox = item.querySelector('input');
+                    checkbox.checked = !checkbox.checked;
+                    item.classList.toggle('selected', checkbox.checked);
+                }
             });
             
             // Elder Modal
