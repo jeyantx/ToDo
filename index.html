@@ -1566,28 +1566,49 @@
         /* ============================================
            GITHUB API FUNCTIONS
            ============================================ */
+        
+        // Raw content URL for reading (better CORS support, no rate limits)
+        const RAW_BASE = `https://raw.githubusercontent.com/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/main`;
+        
         async function fetchFile(path) {
             try {
-                // Use unauthenticated request for public repo (no token needed for reading)
+                // Get content from raw.githubusercontent.com (no rate limits, good CORS)
+                const rawResponse = await fetch(`${RAW_BASE}/${path}?t=${Date.now()}`);
+                
+                if (!rawResponse.ok) {
+                    if (rawResponse.status === 404) {
+                        return null;
+                    }
+                    throw new Error(`HTTP ${rawResponse.status}`);
+                }
+                
+                const content = await rawResponse.json();
+                
+                // SHA will be fetched when needed for saving
+                return { content, sha: null };
+            } catch (error) {
+                console.error(`Error fetching ${path}:`, error);
+                throw error;
+            }
+        }
+        
+        async function getFileSha(path, token) {
+            try {
                 const response = await fetch(`${API_BASE}/${path}`, {
                     headers: {
+                        'Authorization': `Bearer ${token}`,
                         'Accept': 'application/vnd.github.v3+json'
                     }
                 });
                 
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        return null;
-                    }
-                    throw new Error(`HTTP ${response.status}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.sha;
                 }
-                
-                const data = await response.json();
-                const content = JSON.parse(atob(data.content));
-                return { content, sha: data.sha };
+                return null;
             } catch (error) {
-                console.error(`Error fetching ${path}:`, error);
-                throw error;
+                console.error(`Error getting SHA for ${path}:`, error);
+                return null;
             }
         }
 
@@ -1603,11 +1624,21 @@
             
             setSyncStatus('syncing');
             try {
+                // Get current SHA if not provided
+                let currentSha = sha;
+                if (!currentSha) {
+                    currentSha = await getFileSha(path, token);
+                }
+                
                 const body = {
                     message: message || `Update ${path}`,
-                    content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2)))),
-                    sha: sha
+                    content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))))
                 };
+                
+                // Only include SHA if we have one (for updates vs creates)
+                if (currentSha) {
+                    body.sha = currentSha;
+                }
                 
                 const response = await fetch(`${API_BASE}/${path}`, {
                     method: 'PUT',
@@ -1628,7 +1659,7 @@
                         throw new Error('TOKEN_REQUIRED');
                     }
                     // Retry with new token
-                    return saveFile(path, content, sha, message);
+                    return saveFile(path, content, null, message);
                 }
                 
                 if (!response.ok) {
