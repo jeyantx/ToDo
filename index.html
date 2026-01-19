@@ -70,6 +70,113 @@
         }
 
         /* ============================================
+           PASSWORD SCREEN
+           ============================================ */
+        .password-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .password-screen.hidden {
+            display: none;
+        }
+
+        .password-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            width: 90%;
+            max-width: 360px;
+        }
+
+        .password-icon {
+            color: var(--primary-500);
+            margin-bottom: 16px;
+        }
+
+        .password-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 8px;
+        }
+
+        .password-subtitle {
+            color: var(--gray-500);
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+        }
+
+        .password-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .password-input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-size: 1.25rem;
+            font-family: inherit;
+            letter-spacing: 4px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: var(--primary-400);
+            box-shadow: 0 0 0 3px var(--primary-100);
+        }
+
+        .password-submit {
+            padding: 14px 18px;
+            background: var(--primary-500);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .password-submit:hover {
+            background: var(--primary-600);
+        }
+
+        .password-submit:active {
+            transform: scale(0.95);
+        }
+
+        .password-error {
+            color: var(--danger);
+            font-size: 0.85rem;
+            min-height: 20px;
+        }
+
+        .password-input.shake {
+            animation: shake 0.5s ease-in-out;
+            border-color: var(--danger);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        /* ============================================
            LAYOUT
            ============================================ */
         .app-container {
@@ -1272,7 +1379,31 @@
     </style>
 </head>
 <body>
-    <div class="app-container">
+    <!-- Password Screen -->
+    <div class="password-screen" id="passwordScreen">
+        <div class="password-container">
+            <div class="password-icon">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+            </div>
+            <h1 class="password-title">Elder ToDo</h1>
+            <p class="password-subtitle" data-i18n="enterPassword">Enter password to continue</p>
+            <div class="password-input-group">
+                <input type="password" class="password-input" id="passwordInput" placeholder="••••••" maxlength="10" inputmode="numeric" autocomplete="off">
+                <button class="password-submit" id="passwordSubmit">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                        <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="password-error" id="passwordError"></p>
+        </div>
+    </div>
+
+    <div class="app-container" id="appContainer" style="display: none;">
         <!-- Header -->
         <header class="header">
             <div class="header-top">
@@ -1583,6 +1714,69 @@
         const configCollection = db.collection('config');
 
         /* ============================================
+           PASSWORD PROTECTION
+           ============================================ */
+        const APP_PASSWORD = '242424';
+        const AUTH_KEY = 'elderTodoAuth';
+        const AUTH_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+
+        function isAuthenticated() {
+            const authData = localStorage.getItem(AUTH_KEY);
+            if (!authData) return false;
+            
+            try {
+                const { timestamp } = JSON.parse(authData);
+                const now = Date.now();
+                if (now - timestamp > AUTH_DURATION) {
+                    localStorage.removeItem(AUTH_KEY);
+                    return false;
+                }
+                return true;
+            } catch {
+                localStorage.removeItem(AUTH_KEY);
+                return false;
+            }
+        }
+
+        function setAuthenticated() {
+            localStorage.setItem(AUTH_KEY, JSON.stringify({
+                timestamp: Date.now()
+            }));
+        }
+
+        function showApp() {
+            document.getElementById('passwordScreen').classList.add('hidden');
+            document.getElementById('appContainer').style.display = '';
+        }
+
+        function initPasswordScreen() {
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordSubmit = document.getElementById('passwordSubmit');
+            const passwordError = document.getElementById('passwordError');
+
+            function checkPassword() {
+                const entered = passwordInput.value;
+                if (entered === APP_PASSWORD) {
+                    setAuthenticated();
+                    showApp();
+                } else {
+                    passwordError.textContent = currentLang === 'ta' ? 'தவறான கடவுச்சொல்' : 'Incorrect password';
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                    passwordInput.classList.add('shake');
+                    setTimeout(() => passwordInput.classList.remove('shake'), 500);
+                }
+            }
+
+            passwordSubmit.addEventListener('click', checkPassword);
+            passwordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkPassword();
+            });
+            
+            passwordInput.focus();
+        }
+
+        /* ============================================
            TRANSLATIONS (English & Tamil)
            ============================================ */
         const translations = {
@@ -1622,6 +1816,8 @@
                 priorityHighToLow: 'Priority (High to Low)',
                 priorityLowToHigh: 'Priority (Low to High)',
                 groupByElder: 'Group by Elder',
+                enterPassword: 'Enter password to continue',
+                incorrectPassword: 'Incorrect password',
                 noActiveTasks: 'No active tasks',
                 addTaskToStart: 'Add a task to get started!',
                 noStarredTasks: 'No starred tasks',
@@ -1694,6 +1890,8 @@
                 priorityHighToLow: 'முக்கியத்துவம் (அதிகம் முதல் குறைவு வரை)',
                 priorityLowToHigh: 'முக்கியத்துவம் (குறைவு முதல் அதிகம் வரை)',
                 groupByElder: 'மூப்பர் வாரியாக',
+                enterPassword: 'தொடர கடவுச்சொல்லை உள்ளிடவும்',
+                incorrectPassword: 'தவறான கடவுச்சொல்',
                 noActiveTasks: 'பணிகள் இல்லை',
                 addTaskToStart: 'தொடங்குவதற்கு ஒரு பணியைச் சேர்க்கவும்!',
                 noStarredTasks: 'முக்கியமான பணிகள் எதுவுமில்லை',
@@ -2936,6 +3134,13 @@
            EVENT LISTENERS
            ============================================ */
         document.addEventListener('DOMContentLoaded', () => {
+            // Check authentication first
+            if (isAuthenticated()) {
+                showApp();
+            } else {
+                initPasswordScreen();
+            }
+            
             // Initialize language
             const langSelector = document.getElementById('langSelector');
             langSelector.value = currentLang;
