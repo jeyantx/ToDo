@@ -3225,17 +3225,25 @@
             document.getElementById('todoModalTitle').textContent = t('addTask');
             document.getElementById('todoForm').reset();
             document.getElementById('todoId').value = '';
-            // Reset group checkboxes
+            
+            // Reset group checkboxes - explicitly set both class and checked state
             document.querySelectorAll('#groupCheckboxes .group-checkbox').forEach(item => {
+                const checkbox = item.querySelector('input');
+                checkbox.checked = false;
                 item.classList.remove('selected');
-                item.querySelector('input').checked = false;
             });
+            
             // Reset elder checkboxes
             document.querySelectorAll('#elderCheckboxes .form-checkbox-item').forEach(item => {
+                const checkbox = item.querySelector('input');
+                checkbox.checked = false;
                 item.classList.remove('selected');
-                item.querySelector('input').checked = false;
             });
+            
+            // Reset starred
+            document.getElementById('todoStarred').checked = false;
             document.getElementById('starredCheckbox').classList.remove('selected');
+            
             document.getElementById('todoModal').classList.add('active');
         }
 
@@ -3253,23 +3261,40 @@
             document.getElementById('todoRecurring').value = todo.recurring || '';
             document.getElementById('todoStarred').checked = todo.isStarred || false;
             
-            // Update group checkboxes
+            // Update group checkboxes - set checked first, then class
             document.querySelectorAll('#groupCheckboxes .group-checkbox').forEach(item => {
                 const groupName = item.dataset.group;
+                const checkbox = item.querySelector('input');
                 const isSelected = todo.assignedGroups && todo.assignedGroups.includes(groupName);
-                item.classList.toggle('selected', isSelected);
-                item.querySelector('input').checked = isSelected;
+                checkbox.checked = isSelected;
+                if (isSelected) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
             });
             
             // Update elder checkboxes
             document.querySelectorAll('#elderCheckboxes .form-checkbox-item').forEach(item => {
                 const elderId = parseInt(item.dataset.elderId);
+                const checkbox = item.querySelector('input');
                 const isSelected = todo.assignedElders && todo.assignedElders.includes(elderId);
-                item.classList.toggle('selected', isSelected);
-                item.querySelector('input').checked = isSelected;
+                checkbox.checked = isSelected;
+                if (isSelected) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
             });
             
-            document.getElementById('starredCheckbox').classList.toggle('selected', todo.isStarred || false);
+            // Update starred
+            const starredCheckbox = document.getElementById('starredCheckbox');
+            if (todo.isStarred) {
+                starredCheckbox.classList.add('selected');
+            } else {
+                starredCheckbox.classList.remove('selected');
+            }
+            
             document.getElementById('todoModal').classList.add('active');
         }
 
@@ -3736,12 +3761,23 @@
             
             // Group checkboxes (Service Committee, KHOC) - event delegation
             document.getElementById('groupCheckboxes').addEventListener('click', (e) => {
+                e.stopPropagation();
                 const item = e.target.closest('.group-checkbox');
-                if (item) {
+                if (item && e.target.tagName !== 'INPUT') {
                     const checkbox = item.querySelector('input');
                     checkbox.checked = !checkbox.checked;
                     item.classList.toggle('selected', checkbox.checked);
                 }
+            });
+            
+            // Also handle change events on the checkboxes themselves
+            document.querySelectorAll('#groupCheckboxes input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const item = e.target.closest('.group-checkbox');
+                    if (item) {
+                        item.classList.toggle('selected', e.target.checked);
+                    }
+                });
             });
             
             // Elder checkboxes - event delegation for reliable touch support
@@ -3751,6 +3787,8 @@
                     const checkbox = item.querySelector('input');
                     checkbox.checked = !checkbox.checked;
                     item.classList.toggle('selected', checkbox.checked);
+
+                    console.log("Elder checkbox: "+checkbox.value +"-"+checkbox.checked);
                 }
             });
             
