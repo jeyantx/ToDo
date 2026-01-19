@@ -1465,7 +1465,9 @@
             <h1 class="password-title" data-i18n="appTitle">Elder ToDo</h1>
             <p class="password-subtitle" data-i18n="enterPassword">Enter password to continue</p>
             <div class="form-group" style="margin-bottom: 16px;">
-                <input type="text" class="password-input" id="usernameInput" placeholder="Your Name" autocomplete="off" style="letter-spacing: normal; font-size: 1rem;">
+                <select class="password-input" id="usernameInput" style="letter-spacing: normal; font-size: 1rem; cursor: pointer;">
+                    <option value="" data-i18n="selectYourName">-- Select Your Name --</option>
+                </select>
             </div>
             <div class="password-input-group">
                 <input type="password" class="password-input" id="passwordInput" placeholder="••••••" maxlength="10" inputmode="numeric" autocomplete="off">
@@ -1906,28 +1908,32 @@
 
         async function initPasswordScreen() {
             await loadPasswordFromFirebase();
+            await loadEldersForLogin();
             
-            const usernameInput = document.getElementById('usernameInput');
+            const usernameSelect = document.getElementById('usernameInput');
             const passwordInput = document.getElementById('passwordInput');
             const passwordSubmit = document.getElementById('passwordSubmit');
             const passwordError = document.getElementById('passwordError');
 
             async function checkPassword() {
                 const enteredPassword = passwordInput.value;
-                const enteredName = usernameInput.value.trim();
+                const selectedElderId = usernameSelect.value;
+                const selectedOption = usernameSelect.options[usernameSelect.selectedIndex];
+                const selectedName = selectedOption ? selectedOption.text : '';
                 
-                if (!enteredName) {
-                    passwordError.textContent = currentLang === 'ta' ? 'பெயரை உள்ளிடவும்' : 'Please enter your name';
-                    usernameInput.focus();
-                    usernameInput.classList.add('shake');
-                    setTimeout(() => usernameInput.classList.remove('shake'), 500);
+                if (!selectedElderId) {
+                    passwordError.textContent = currentLang === 'ta' ? 'பெயரைத் தேர்ந்தெடுக்கவும்' : 'Please select your name';
+                    usernameSelect.focus();
+                    usernameSelect.classList.add('shake');
+                    setTimeout(() => usernameSelect.classList.remove('shake'), 500);
                     return;
                 }
                 
                 if (enteredPassword === appPassword) {
-                    setAuthenticated(enteredName);
-                    // Auto-select elder based on name match
-                    autoSelectElderByName(enteredName);
+                    setAuthenticated(selectedName);
+                    // Set the selected elder as my elder
+                    state.myElderId = selectedElderId;
+                    localStorage.setItem('myElderId', selectedElderId);
                     showApp();
                 } else {
                     passwordError.textContent = currentLang === 'ta' ? 'தவறான கடவுச்சொல்' : 'Incorrect password';
@@ -1942,26 +1948,25 @@
             passwordInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') checkPassword();
             });
-            usernameInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') passwordInput.focus();
-            });
             
-            usernameInput.focus();
+            usernameSelect.focus();
         }
 
-        function autoSelectElderByName(userName) {
-            // Will be called after elders are loaded
-            setTimeout(() => {
-                const lowerName = userName.toLowerCase();
-                const matchingElder = state.elders.find(e => 
-                    e.name.toLowerCase().includes(lowerName) || 
-                    lowerName.includes(e.name.toLowerCase())
-                );
-                if (matchingElder) {
-                    state.myElderId = matchingElder.id;
-                    localStorage.setItem('myElderId', matchingElder.id);
-                }
-            }, 2000);
+        async function loadEldersForLogin() {
+            try {
+                const snapshot = await eldersCollection.get();
+                const usernameSelect = document.getElementById('usernameInput');
+                
+                snapshot.docs.forEach(doc => {
+                    const elder = { id: doc.id, ...doc.data() };
+                    const option = document.createElement('option');
+                    option.value = elder.id;
+                    option.textContent = elder.name;
+                    usernameSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading elders for login:', error);
+            }
         }
 
         /* ============================================
