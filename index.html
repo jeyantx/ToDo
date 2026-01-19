@@ -878,6 +878,20 @@
             font-weight: 500;
         }
 
+        .elder-tag.group-tag {
+            font-weight: 600;
+        }
+
+        .elder-tag.group-tag.sc {
+            background: var(--warning-light);
+            color: #b45309;
+        }
+
+        .elder-tag.group-tag.khoc {
+            background: var(--success-light);
+            color: #15803d;
+        }
+
         .todo-actions {
             display: flex;
             gap: 8px;
@@ -2870,7 +2884,7 @@
             const active = activeTodos.length;
             const completed = completedTodos.length;
             const starred = activeTodos.filter(t => t.isStarred).length;
-            const unassigned = activeTodos.filter(t => !t.assignedElders || t.assignedElders.length === 0).length;
+            const unassigned = activeTodos.filter(t => !t.assignedElders || t.assignedElders.length === 0).filter(t => !t.assignedGroups || t.assignedGroups.length === 0).length;
             
             // My tasks count - include tasks assigned to groups the user belongs to
             let myTasksCount = 0;
@@ -3003,7 +3017,7 @@
 
         function renderUnassignedTodos() {
             const container = document.getElementById('unassignedList');
-            const todos = sortTodos(getFilteredTodos().filter(t => !t.assignedElders || t.assignedElders.length === 0));
+            const todos = sortTodos(getFilteredTodos().filter(t => !t.assignedElders || t.assignedElders.length === 0).filter(t => !t.assignedGroups || t.assignedGroups.length === 0));
             
             if (todos.length === 0) {
                 container.innerHTML = renderEmptyState(t('noUnassignedTasks'), t('allTasksAssigned'));
@@ -3064,12 +3078,14 @@
                                 ${todo.dueDate ? `<span class="todo-badge badge-due ${dueDateClass}">${formatDate(todo.dueDate)}</span>` : ''}
                                 ${todo.recurring ? `<span class="todo-badge badge-recurring">🔄 ${recurringLabel[todo.recurring]}</span>` : ''}
                             </div>
-                            ${todo.assignedElders && todo.assignedElders.length > 0 ? `
+                            ${(todo.assignedGroups && todo.assignedGroups.length > 0) || (todo.assignedElders && todo.assignedElders.length > 0) ? `
                                 <div class="todo-elders">
-                                    ${todo.assignedElders.map(eid => {
+                                    ${todo.assignedGroups && todo.assignedGroups.includes('serviceCommittee') ? `<span class="elder-tag group-tag sc">${t('serviceCommittee')}</span>` : ''}
+                                    ${todo.assignedGroups && todo.assignedGroups.includes('khoc') ? `<span class="elder-tag group-tag khoc">KHOC</span>` : ''}
+                                    ${todo.assignedElders ? todo.assignedElders.map(eid => {
                                         const e = elder(eid);
                                         return e ? `<span class="elder-tag">${escapeHtml(e.name)}</span>` : '';
-                                    }).join('')}
+                                    }).join('') : ''}
                                 </div>
                             ` : ''}
                         </div>
