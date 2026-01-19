@@ -925,6 +925,21 @@
             font-family: inherit;
             font-size: 0.95rem;
             transition: var(--transition);
+            box-sizing: border-box;
+        }
+
+        /* Date input specific styling */
+        input[type="date"].form-input {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-color: white;
+            min-height: 48px;
+        }
+
+        /* Fix for iOS Safari date input */
+        input[type="date"]::-webkit-date-and-time-value {
+            text-align: left;
         }
 
         .form-input:focus,
@@ -1023,11 +1038,19 @@
                 width: 100%;
                 max-width: 100%;
                 min-width: 0;
+                box-sizing: border-box;
             }
             
             input[type="date"] {
                 width: 100%;
                 max-width: 100%;
+                box-sizing: border-box;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+                background-color: white;
+                padding: 12px 14px;
+                font-size: 16px; /* Prevents zoom on iOS */
             }
         }
 
