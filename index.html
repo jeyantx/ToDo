@@ -154,6 +154,30 @@
             50% { opacity: 0.5; }
         }
 
+        /* Header Controls */
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lang-selector {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .lang-selector option {
+            background: var(--primary-600);
+            color: white;
+        }
+
         /* Stats Bar */
         .stats-bar {
             display: flex;
@@ -993,6 +1017,18 @@
                 padding: 6px 10px;
                 font-size: 0.85rem;
             }
+            
+            .form-input,
+            .form-select {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+            
+            input[type="date"] {
+                width: 100%;
+                max-width: 100%;
+            }
         }
 
         .modal-footer {
@@ -1105,6 +1141,28 @@
         }
 
         /* ============================================
+           MY TASKS ELDER SELECTOR
+           ============================================ */
+        .my-elder-selector {
+            background: var(--primary-50);
+            padding: 16px;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            border: 1px solid var(--primary-200);
+        }
+
+        .my-elder-selector .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-700);
+        }
+
+        .my-elder-selector .form-select {
+            width: 100%;
+        }
+
+        /* ============================================
            LOADING SPINNER
            ============================================ */
         .loading {
@@ -1198,20 +1256,26 @@
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                         <polyline points="22 4 12 14.01 9 11.01"/>
                     </svg>
-                    Elder ToDo
+                    <span data-i18n="appTitle">Elder ToDo</span>
                 </h1>
-                <div class="sync-status">
-                    <span class="sync-dot" id="syncDot"></span>
-                    <span id="syncText">Synced</span>
+                <div class="header-controls">
+                    <select class="lang-selector" id="langSelector">
+                        <option value="en">EN</option>
+                        <option value="ta">தமிழ்</option>
+                    </select>
+                    <div class="sync-status">
+                        <span class="sync-dot" id="syncDot"></span>
+                        <span id="syncText">Synced</span>
+                    </div>
                 </div>
             </div>
             <div class="stats-bar">
                 <div class="stat-item">
-                    <span>Active</span>
+                    <span data-i18n="active">Active</span>
                     <span class="stat-value" id="statActive">0</span>
                 </div>
                 <div class="stat-item">
-                    <span>⭐ Starred</span>
+                    <span>⭐ <span data-i18n="starred">Starred</span></span>
                     <span class="stat-value" id="statStarred">0</span>
                 </div>
             </div>
@@ -1242,14 +1306,22 @@
                     <path d="M2 17l10 5 10-5"/>
                     <path d="M2 12l10 5 10-5"/>
                 </svg>
-                Active
+                <span data-i18n="active">Active</span>
                 <span class="tab-badge" id="tabBadgeActive">0</span>
+            </button>
+            <button class="tab" data-tab="mytasks">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span data-i18n="myTasks">My Tasks</span>
+                <span class="tab-badge" id="tabBadgeMyTasks">0</span>
             </button>
             <button class="tab" data-tab="starred">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                 </svg>
-                Starred
+                <span data-i18n="starred">Starred</span>
                 <span class="tab-badge" id="tabBadgeStarred">0</span>
             </button>
             <button class="tab" data-tab="completed">
@@ -1257,7 +1329,7 @@
                     <polyline points="9 11 12 14 22 4"/>
                     <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                 </svg>
-                Completed
+                <span data-i18n="completed">Completed</span>
                 <span class="tab-badge" id="tabBadgeCompleted">0</span>
             </button>
             <button class="tab" data-tab="elders">
@@ -1267,7 +1339,7 @@
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
-                Elders
+                <span data-i18n="elders">Elders</span>
             </button>
         </nav>
 
@@ -1299,6 +1371,17 @@
                 </div>
             </div>
 
+            <!-- My Tasks Tab -->
+            <div class="tab-content" id="tab-mytasks">
+                <div class="my-elder-selector" id="myElderSelector">
+                    <label class="form-label" data-i18n="selectYourName">Select your name:</label>
+                    <select class="form-select" id="myElderSelect">
+                        <option value="" data-i18n="chooseElder">-- Choose Elder --</option>
+                    </select>
+                </div>
+                <div class="todo-list" id="myTasksList"></div>
+            </div>
+
             <!-- Starred Tab -->
             <div class="tab-content" id="tab-starred">
                 <div class="todo-list" id="starredList"></div>
@@ -1312,8 +1395,8 @@
             <!-- Elders Tab -->
             <div class="tab-content" id="tab-elders">
                 <form class="add-elder-form" id="addElderForm">
-                    <input type="text" class="add-elder-input" id="newElderName" placeholder="Enter elder name..." required>
-                    <button type="submit" class="btn btn-primary">Add</button>
+                    <input type="text" class="add-elder-input" id="newElderName" data-i18n-placeholder="enterElderName" placeholder="Enter elder name..." required>
+                    <button type="submit" class="btn btn-primary" data-i18n="add">Add</button>
                 </form>
                 <div class="elder-list" id="elderList"></div>
             </div>
@@ -1332,7 +1415,7 @@
     <div class="modal-overlay" id="todoModal">
         <div class="modal">
             <div class="modal-header">
-                <h2 class="modal-title" id="todoModalTitle">Add Task</h2>
+                <h2 class="modal-title" id="todoModalTitle" data-i18n="addTask">Add Task</h2>
                 <button class="modal-close" id="closeTodoModal">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"/>
@@ -1344,38 +1427,38 @@
                 <form id="todoForm">
                     <input type="hidden" id="todoId">
                     <div class="form-group">
-                        <label class="form-label">Title *</label>
-                        <input type="text" class="form-input" id="todoTitle" placeholder="What needs to be done?" required>
+                        <label class="form-label" data-i18n="title">Title</label> *
+                        <input type="text" class="form-input" id="todoTitle" data-i18n-placeholder="whatNeedsToBeDone" placeholder="What needs to be done?" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Description</label>
-                        <textarea class="form-textarea" id="todoDescription" placeholder="Add more details..."></textarea>
+                        <label class="form-label" data-i18n="description">Description</label>
+                        <textarea class="form-textarea" id="todoDescription" data-i18n-placeholder="addMoreDetails" placeholder="Add more details..."></textarea>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">Due Date</label>
+                            <label class="form-label" data-i18n="dueDate">Due Date</label>
                             <input type="date" class="form-input" id="todoDueDate">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Priority</label>
+                            <label class="form-label" data-i18n="priority">Priority</label>
                             <select class="form-select" id="todoPriority">
-                                <option value="low">Low</option>
-                                <option value="medium" selected>Medium</option>
-                                <option value="high">High</option>
+                                <option value="low" data-i18n="low">Low</option>
+                                <option value="medium" selected data-i18n="medium">Medium</option>
+                                <option value="high" data-i18n="high">High</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Recurring</label>
+                        <label class="form-label" data-i18n="recurring">Recurring</label>
                         <select class="form-select" id="todoRecurring">
-                            <option value="">None</option>
-                            <option value="daily">Daily</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="monthly">Monthly</option>
+                            <option value="" data-i18n="none">None</option>
+                            <option value="daily" data-i18n="daily">Daily</option>
+                            <option value="weekly" data-i18n="weekly">Weekly</option>
+                            <option value="monthly" data-i18n="monthly">Monthly</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Assign to Elders</label>
+                        <label class="form-label" data-i18n="assignToElders">Assign to Elders</label>
                         <div class="form-checkbox-group" id="elderCheckboxes"></div>
                     </div>
                     <div class="form-group">
@@ -1384,14 +1467,14 @@
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                             </svg>
-                            Mark as important
+                            <span data-i18n="markAsImportant">Mark as important</span>
                         </label>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancelTodoBtn">Cancel</button>
-                <button class="btn btn-primary" id="saveTodoBtn">Save Task</button>
+                <button class="btn btn-secondary" id="cancelTodoBtn" data-i18n="cancel">Cancel</button>
+                <button class="btn btn-primary" id="saveTodoBtn" data-i18n="save">Save Task</button>
             </div>
         </div>
     </div>
@@ -1475,6 +1558,199 @@
         const configCollection = db.collection('config');
 
         /* ============================================
+           TRANSLATIONS (English & Tamil)
+           ============================================ */
+        const translations = {
+            en: {
+                appTitle: 'Elder ToDo',
+                active: 'Active',
+                myTasks: 'My Tasks',
+                starred: 'Starred',
+                completed: 'Completed',
+                elders: 'Elders',
+                searchTasks: 'Search tasks...',
+                addTask: 'Add Task',
+                editTask: 'Edit Task',
+                title: 'Title',
+                description: 'Description',
+                dueDate: 'Due Date',
+                priority: 'Priority',
+                recurring: 'Recurring',
+                assignToElders: 'Assign to Elders',
+                markAsImportant: 'Mark as important',
+                save: 'Save Task',
+                cancel: 'Cancel',
+                add: 'Add',
+                edit: 'Edit',
+                delete: 'Delete',
+                low: 'Low',
+                medium: 'Medium',
+                high: 'High',
+                none: 'None',
+                daily: 'Daily',
+                weekly: 'Weekly',
+                monthly: 'Monthly',
+                newestFirst: 'Newest First',
+                oldestFirst: 'Oldest First',
+                dueDateEarliest: 'Due Date (Earliest)',
+                dueDateLatest: 'Due Date (Latest)',
+                priorityHighToLow: 'Priority (High to Low)',
+                priorityLowToHigh: 'Priority (Low to High)',
+                groupByElder: 'Group by Elder',
+                noActiveTasks: 'No active tasks',
+                addTaskToStart: 'Add a task to get started!',
+                noStarredTasks: 'No starred tasks',
+                starImportantTasks: 'Star important tasks to see them here',
+                noCompletedTasks: 'No completed tasks',
+                completedTasksAppear: 'Completed tasks will appear here',
+                noElders: 'No elders',
+                addEldersToAssign: 'Add elders to assign tasks',
+                selectYourName: 'Select your name:',
+                chooseElder: '-- Choose Elder --',
+                enterElderName: 'Enter elder name...',
+                whatNeedsToBeDone: 'What needs to be done?',
+                addMoreDetails: 'Add more details...',
+                today: 'Today',
+                tomorrow: 'Tomorrow',
+                overdue: 'Overdue',
+                synced: 'Synced',
+                syncing: 'Syncing...',
+                syncError: 'Sync Error',
+                taskAdded: 'Task added!',
+                taskUpdated: 'Task updated!',
+                taskDeleted: 'Task deleted!',
+                taskCompleted: 'Task completed!',
+                elderAdded: 'Elder added!',
+                elderUpdated: 'Elder updated!',
+                elderDeleted: 'Elder deleted!',
+                deleteTask: 'Delete Task?',
+                deleteTaskConfirm: 'This task will be permanently deleted.',
+                deleteElder: 'Delete Elder?',
+                deleteElderConfirm: 'This elder will be removed from all tasks.',
+                noMyTasks: 'No tasks assigned to you',
+                selectYourselfFirst: 'Select yourself from the dropdown above',
+                activeTask: 'active task',
+                activeTasks: 'active tasks',
+                unassigned: 'Unassigned'
+            },
+            ta: {
+                appTitle: 'மூப்பர் பணிகள்',
+                active: 'செயலில்',
+                myTasks: 'என் பணிகள்',
+                starred: 'முக்கியம்',
+                completed: 'முடிந்தது',
+                elders: 'மூப்பர்கள்',
+                searchTasks: 'பணிகளை தேடு...',
+                addTask: 'பணி சேர்',
+                editTask: 'பணி திருத்து',
+                title: 'தலைப்பு',
+                description: 'விவரம்',
+                dueDate: 'முடிவு தேதி',
+                priority: 'முன்னுரிமை',
+                recurring: 'திரும்பத்திரும்ப',
+                assignToElders: 'மூப்பர்களுக்கு ஒதுக்கு',
+                markAsImportant: 'முக்கியம் எனக் குறி',
+                save: 'சேமி',
+                cancel: 'ரத்து',
+                add: 'சேர்',
+                edit: 'திருத்து',
+                delete: 'நீக்கு',
+                low: 'குறைவு',
+                medium: 'நடுத்தரம்',
+                high: 'உயர்வு',
+                none: 'இல்லை',
+                daily: 'தினமும்',
+                weekly: 'வாரந்தோறும்',
+                monthly: 'மாதந்தோறும்',
+                newestFirst: 'புதியது முதலில்',
+                oldestFirst: 'பழையது முதலில்',
+                dueDateEarliest: 'முடிவு தேதி (விரைவில்)',
+                dueDateLatest: 'முடிவு தேதி (தாமதமாக)',
+                priorityHighToLow: 'முன்னுரிமை (உயர் → குறை)',
+                priorityLowToHigh: 'முன்னுரிமை (குறை → உயர்)',
+                groupByElder: 'மூப்பர் வாரியாக',
+                noActiveTasks: 'செயலில் பணிகள் இல்லை',
+                addTaskToStart: 'தொடங்க ஒரு பணி சேர்க்கவும்!',
+                noStarredTasks: 'முக்கிய பணிகள் இல்லை',
+                starImportantTasks: 'முக்கிய பணிகளை இங்கே காண நட்சத்திரமிடுங்கள்',
+                noCompletedTasks: 'முடிந்த பணிகள் இல்லை',
+                completedTasksAppear: 'முடிந்த பணிகள் இங்கே தோன்றும்',
+                noElders: 'மூப்பர்கள் இல்லை',
+                addEldersToAssign: 'பணிகளை ஒதுக்க மூப்பர்களைச் சேர்க்கவும்',
+                selectYourName: 'உங்கள் பெயரைத் தேர்ந்தெடுக்கவும்:',
+                chooseElder: '-- மூப்பரைத் தேர்வு செய் --',
+                enterElderName: 'மூப்பர் பெயரை உள்ளிடவும்...',
+                whatNeedsToBeDone: 'என்ன செய்ய வேண்டும்?',
+                addMoreDetails: 'மேலும் விவரங்களைச் சேர்க்கவும்...',
+                today: 'இன்று',
+                tomorrow: 'நாளை',
+                overdue: 'தாமதம்',
+                synced: 'ஒத்திசைக்கப்பட்டது',
+                syncing: 'ஒத்திசைக்கிறது...',
+                syncError: 'ஒத்திசைவு பிழை',
+                taskAdded: 'பணி சேர்க்கப்பட்டது!',
+                taskUpdated: 'பணி புதுப்பிக்கப்பட்டது!',
+                taskDeleted: 'பணி நீக்கப்பட்டது!',
+                taskCompleted: 'பணி முடிந்தது!',
+                elderAdded: 'மூப்பர் சேர்க்கப்பட்டார்!',
+                elderUpdated: 'மூப்பர் புதுப்பிக்கப்பட்டார்!',
+                elderDeleted: 'மூப்பர் நீக்கப்பட்டார்!',
+                deleteTask: 'பணியை நீக்கவா?',
+                deleteTaskConfirm: 'இந்த பணி நிரந்தரமாக நீக்கப்படும்.',
+                deleteElder: 'மூப்பரை நீக்கவா?',
+                deleteElderConfirm: 'இந்த மூப்பர் அனைத்து பணிகளிலிருந்தும் நீக்கப்படுவார்.',
+                noMyTasks: 'உங்களுக்கு பணிகள் ஒதுக்கப்படவில்லை',
+                selectYourselfFirst: 'மேலே உள்ள பட்டியலில் உங்களைத் தேர்ந்தெடுக்கவும்',
+                activeTask: 'செயலில் பணி',
+                activeTasks: 'செயலில் பணிகள்',
+                unassigned: 'ஒதுக்கப்படவில்லை'
+            }
+        };
+
+        let currentLang = localStorage.getItem('todoAppLang') || 'en';
+
+        function t(key) {
+            return translations[currentLang][key] || translations['en'][key] || key;
+        }
+
+        function applyTranslations() {
+            // Update all data-i18n elements
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.textContent = t(key);
+            });
+            
+            // Update placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                el.placeholder = t(key);
+            });
+            
+            // Update search placeholder
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.placeholder = t('searchTasks');
+            
+            // Update sort options
+            const sortSelect = document.getElementById('sortSelect');
+            if (sortSelect) {
+                const options = sortSelect.options;
+                options[0].text = t('newestFirst');
+                options[1].text = t('oldestFirst');
+                options[2].text = t('dueDateEarliest');
+                options[3].text = t('dueDateLatest');
+                options[4].text = t('priorityHighToLow');
+                options[5].text = t('priorityLowToHigh');
+            }
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('todoAppLang', lang);
+            applyTranslations();
+            renderAll();
+        }
+
+        /* ============================================
            STATE MANAGEMENT
            ============================================ */
         let state = {
@@ -1489,7 +1765,8 @@
             groupByElder: false,
             editingTodoId: null,
             confirmCallback: null,
-            unsubscribers: []
+            unsubscribers: [],
+            myElderId: localStorage.getItem('myElderId') || null
         };
 
         /* ============================================
@@ -1923,6 +2200,9 @@
                 case 'active':
                     renderActiveTodos();
                     break;
+                case 'mytasks':
+                    renderMyTasks();
+                    break;
                 case 'starred':
                     renderStarredTodos();
                     break;
@@ -1935,6 +2215,7 @@
             }
             
             renderElderCheckboxes();
+            renderMyElderSelector();
         }
 
         function updateStats() {
@@ -1944,12 +2225,53 @@
             const completed = completedTodos.length;
             const starred = activeTodos.filter(t => t.isStarred).length;
             
+            // My tasks count
+            let myTasksCount = 0;
+            if (state.myElderId) {
+                const elderId = Number(state.myElderId);
+                myTasksCount = activeTodos.filter(t => t.assignedElders && t.assignedElders.includes(elderId)).length;
+            }
+            
             document.getElementById('statActive').textContent = active;
             document.getElementById('statStarred').textContent = starred;
             
             document.getElementById('tabBadgeActive').textContent = active;
+            document.getElementById('tabBadgeMyTasks').textContent = myTasksCount;
             document.getElementById('tabBadgeStarred').textContent = starred;
             document.getElementById('tabBadgeCompleted').textContent = completed;
+        }
+
+        function renderMyElderSelector() {
+            const select = document.getElementById('myElderSelect');
+            if (!select) return;
+            
+            const currentValue = state.myElderId;
+            select.innerHTML = `<option value="">${t('chooseElder')}</option>` + 
+                state.elders.map(elder => 
+                    `<option value="${elder.id}" ${String(elder.id) === String(currentValue) ? 'selected' : ''}>${escapeHtml(elder.name)}</option>`
+                ).join('');
+        }
+
+        function renderMyTasks() {
+            const container = document.getElementById('myTasksList');
+            
+            if (!state.myElderId) {
+                container.innerHTML = renderEmptyState(t('noMyTasks'), t('selectYourselfFirst'));
+                return;
+            }
+            
+            const elderId = Number(state.myElderId);
+            let todos = sortTodos(getFilteredTodos().filter(t => 
+                t.assignedElders && t.assignedElders.includes(elderId)
+            ));
+            
+            if (todos.length === 0) {
+                container.innerHTML = renderEmptyState(t('noMyTasks'), t('addTaskToStart'));
+                return;
+            }
+            
+            container.innerHTML = todos.map((todo, index) => renderTodoCard(todo, index, 'mytasks')).join('');
+            initDragAndDrop(container, 'mytasks');
         }
 
         function renderTabs() {
@@ -1967,7 +2289,7 @@
             let todos = sortTodos(getFilteredTodos());
             
             if (todos.length === 0) {
-                container.innerHTML = renderEmptyState('No active tasks', 'Add a task to get started!');
+                container.innerHTML = renderEmptyState(t('noActiveTasks'), t('addTaskToStart'));
                 return;
             }
             
@@ -1978,7 +2300,7 @@
                 state.elders.forEach(elder => {
                     const elderTodos = groups.get(elder.id) || [];
                     if (elderTodos.length > 0) {
-                        html += `<div class="group-header">${elder.name}<span class="group-count">${elderTodos.length}</span></div>`;
+                        html += `<div class="group-header">${escapeHtml(elder.name)}<span class="group-count">${elderTodos.length}</span></div>`;
                         elderTodos.forEach((todo, index) => {
                             html += renderTodoCard(todo, index, 'active');
                         });
@@ -1986,7 +2308,7 @@
                 });
                 
                 if (unassigned.length > 0) {
-                    html += `<div class="group-header">Unassigned<span class="group-count">${unassigned.length}</span></div>`;
+                    html += `<div class="group-header">${t('unassigned')}<span class="group-count">${unassigned.length}</span></div>`;
                     unassigned.forEach((todo, index) => {
                         html += renderTodoCard(todo, index, 'active');
                     });
@@ -2005,7 +2327,7 @@
             const todos = sortTodos(getFilteredTodos().filter(t => t.isStarred));
             
             if (todos.length === 0) {
-                container.innerHTML = renderEmptyState('No starred tasks', 'Star important tasks to see them here');
+                container.innerHTML = renderEmptyState(t('noStarredTasks'), t('starImportantTasks'));
                 return;
             }
             
@@ -2030,7 +2352,7 @@
             todos.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
             
             if (todos.length === 0) {
-                container.innerHTML = renderEmptyState('No completed tasks', 'Completed tasks will appear here');
+                container.innerHTML = renderEmptyState(t('noCompletedTasks'), t('completedTasksAppear'));
                 return;
             }
             
@@ -2040,8 +2362,8 @@
         function renderTodoCard(todo, index, listType) {
             const elder = id => state.elders.find(e => String(e.id) === String(id));
             const dueDateClass = getDueDateClass(todo.dueDate);
-            const priorityLabel = { high: 'High', medium: 'Medium', low: 'Low' };
-            const recurringLabel = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' };
+            const priorityLabel = { high: t('high'), medium: t('medium'), low: t('low') };
+            const recurringLabel = { daily: t('daily'), weekly: t('weekly'), monthly: t('monthly') };
             const isCompleted = listType === 'completed';
             
             return `
@@ -2080,7 +2402,7 @@
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                             </svg>
-                            Edit
+                            ${t('edit')}
                         </button>
                         ` : ''}
                         <button class="todo-action-btn delete" onclick="deleteTodo('${todo.id}', ${isCompleted})">
@@ -2088,7 +2410,7 @@
                                 <polyline points="3 6 5 6 21 6"/>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                             </svg>
-                            Delete
+                            ${t('delete')}
                         </button>
                     </div>
                 </div>
@@ -2099,7 +2421,7 @@
             const container = document.getElementById('elderList');
             
             if (state.elders.length === 0) {
-                container.innerHTML = renderEmptyState('No elders', 'Add elders to assign tasks');
+                container.innerHTML = renderEmptyState(t('noElders'), t('addEldersToAssign'));
                 return;
             }
             
@@ -2107,22 +2429,23 @@
                 const elderId = Number(elder.id);
                 const taskCount = state.todos.filter(t => t.assignedElders && t.assignedElders.includes(elderId)).length;
                 const initial = elder.name.charAt(0).toUpperCase();
+                const taskLabel = taskCount !== 1 ? t('activeTasks') : t('activeTask');
                 
                 return `
                     <div class="elder-card">
                         <div class="elder-avatar">${initial}</div>
                         <div class="elder-info">
                             <div class="elder-name">${escapeHtml(elder.name)}</div>
-                            <div class="elder-task-count">${taskCount} active task${taskCount !== 1 ? 's' : ''}</div>
+                            <div class="elder-task-count">${taskCount} ${taskLabel}</div>
                         </div>
                         <div class="elder-actions">
-                            <button class="elder-btn" onclick="openEditElder('${elder.id}')" title="Edit">
+                            <button class="elder-btn" onclick="openEditElder('${elder.id}')" title="${t('edit')}">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                                 </svg>
                             </button>
-                            <button class="elder-btn delete" onclick="deleteElder('${elder.id}')" title="Delete">
+                            <button class="elder-btn delete" onclick="deleteElder('${elder.id}')" title="${t('delete')}">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <polyline points="3 6 5 6 21 6"/>
                                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -2206,7 +2529,7 @@
            ============================================ */
         function openAddTodo() {
             state.editingTodoId = null;
-            document.getElementById('todoModalTitle').textContent = 'Add Task';
+            document.getElementById('todoModalTitle').textContent = t('addTask');
             document.getElementById('todoForm').reset();
             document.getElementById('todoId').value = '';
             document.querySelectorAll('#elderCheckboxes .form-checkbox-item').forEach(item => {
@@ -2222,7 +2545,7 @@
             if (!todo) return;
             
             state.editingTodoId = id;
-            document.getElementById('todoModalTitle').textContent = 'Edit Task';
+            document.getElementById('todoModalTitle').textContent = t('editTask');
             document.getElementById('todoId').value = id;
             document.getElementById('todoTitle').value = todo.title;
             document.getElementById('todoDescription').value = todo.description || '';
@@ -2347,17 +2670,19 @@
             tomorrow.setDate(tomorrow.getDate() + 1);
             
             if (date.toDateString() === today.toDateString()) {
-                return 'Today';
+                return t('today');
             } else if (date.toDateString() === tomorrow.toDateString()) {
-                return 'Tomorrow';
+                return t('tomorrow');
             } else {
-                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const locale = currentLang === 'ta' ? 'ta-IN' : 'en-US';
+                return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
             }
         }
 
         function getDueDateClass(dateStr) {
             if (!dateStr) return '';
             const date = new Date(dateStr);
+            date.setHours(0, 0, 0, 0);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             
@@ -2375,14 +2700,14 @@
             switch (status) {
                 case 'syncing':
                     dot.classList.add('syncing');
-                    text.textContent = 'Syncing...';
+                    text.textContent = t('syncing');
                     break;
                 case 'error':
                     dot.classList.add('error');
-                    text.textContent = 'Sync Error';
+                    text.textContent = t('syncError');
                     break;
                 default:
-                    text.textContent = 'Synced';
+                    text.textContent = t('synced');
             }
         }
 
@@ -2581,9 +2906,26 @@
            EVENT LISTENERS
            ============================================ */
         document.addEventListener('DOMContentLoaded', () => {
+            // Initialize language
+            const langSelector = document.getElementById('langSelector');
+            langSelector.value = currentLang;
+            applyTranslations();
+            
             // Initialize
             loadData();
             initAutoReload();
+            
+            // Language selector
+            langSelector.addEventListener('change', (e) => {
+                setLanguage(e.target.value);
+            });
+            
+            // My Elder selector
+            document.getElementById('myElderSelect').addEventListener('change', (e) => {
+                state.myElderId = e.target.value || null;
+                localStorage.setItem('myElderId', state.myElderId || '');
+                renderAll();
+            });
             
             // Tab navigation
             document.querySelectorAll('.tab').forEach(tab => {
