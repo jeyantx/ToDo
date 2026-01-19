@@ -403,15 +403,21 @@
         }
 
         .group-checkbox {
-            background: white !important;
-            border: 2px dashed var(--warning) !important;
-            color: var(--gray-600) !important;
+            background: var(--gray-50) !important;
+            border: 2px solid var(--gray-300) !important;
+            color: var(--gray-500) !important;
+        }
+
+        .group-checkbox:hover {
+            background: var(--warning-light) !important;
+            border-color: var(--warning) !important;
         }
 
         .group-checkbox.selected {
             background: var(--warning) !important;
             border: 2px solid var(--warning) !important;
             color: white !important;
+            font-weight: 600;
         }
 
         .elder-badges {
@@ -2475,6 +2481,7 @@
                     title: todoData.title.trim(),
                     description: todoData.description?.trim() || '',
                     assignedElders: todoData.assignedElders || [],
+                    assignedGroups: todoData.assignedGroups || [],
                     dueDate: todoData.dueDate || null,
                     priority: todoData.priority || 'medium',
                     isStarred: todoData.isStarred || false,
@@ -2500,6 +2507,7 @@
                     title: todoData.title.trim(),
                     description: todoData.description?.trim() || '',
                     assignedElders: todoData.assignedElders || [],
+                    assignedGroups: todoData.assignedGroups || [],
                     dueDate: todoData.dueDate || null,
                     priority: todoData.priority || 'medium',
                     isStarred: todoData.isStarred || false,
@@ -2578,6 +2586,7 @@
                                 title: todo.title,
                                 description: todo.description || '',
                                 assignedElders: todo.assignedElders || [],
+                                assignedGroups: todo.assignedGroups || [],
                                 dueDate: newDueDate,
                                 priority: todo.priority || 'medium',
                                 isStarred: todo.isStarred || false,
