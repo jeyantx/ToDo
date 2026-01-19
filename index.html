@@ -2253,14 +2253,14 @@
                 </label>
             `).join('');
             
-            // Add click handlers
+            // Add click handlers with better touch support
             container.querySelectorAll('.form-checkbox-item').forEach(item => {
                 item.addEventListener('click', (e) => {
-                    if (e.target.tagName !== 'INPUT') {
-                        const checkbox = item.querySelector('input');
-                        checkbox.checked = !checkbox.checked;
-                    }
-                    item.classList.toggle('selected', item.querySelector('input').checked);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const checkbox = item.querySelector('input');
+                    checkbox.checked = !checkbox.checked;
+                    item.classList.toggle('selected', checkbox.checked);
                 });
             });
         }
@@ -2585,13 +2585,13 @@
                 if (e.target.classList.contains('modal-overlay')) closeTodoModal();
             });
             
-            // Starred checkbox toggle
+            // Starred checkbox toggle with better touch support
             document.getElementById('starredCheckbox').addEventListener('click', (e) => {
-                if (e.target.tagName !== 'INPUT') {
-                    const checkbox = document.getElementById('todoStarred');
-                    checkbox.checked = !checkbox.checked;
-                }
-                e.currentTarget.classList.toggle('selected', document.getElementById('todoStarred').checked);
+                e.preventDefault();
+                e.stopPropagation();
+                const checkbox = document.getElementById('todoStarred');
+                checkbox.checked = !checkbox.checked;
+                e.currentTarget.classList.toggle('selected', checkbox.checked);
             });
             
             // Elder Modal

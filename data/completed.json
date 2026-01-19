@@ -1,6 +1,30 @@
 {
   "version": 1,
-  "lastUpdated": "2026-01-19T00:00:00Z",
-  "todos": []
+  "lastUpdated": "2026-01-19T18:00:00Z",
+  "todos": [
+    {
+      "id": 101,
+      "title": "Annual General Meeting",
+      "description": "AGM preparation and documentation",
+      "assignedElders": [1, 2, 3, 4, 5],
+      "dueDate": "2026-01-15",
+      "priority": "high",
+      "recurring": "",
+      "isStarred": true,
+      "createdAt": "2026-01-01T10:00:00Z",
+      "completedAt": "2026-01-15T17:00:00Z"
+    },
+    {
+      "id": 102,
+      "title": "Christmas Celebration",
+      "description": "Organize Christmas service and carol singing",
+      "assignedElders": [2, 5],
+      "dueDate": "2025-12-25",
+      "priority": "high",
+      "recurring": "",
+      "isStarred": false,
+      "createdAt": "2025-12-10T08:00:00Z",
+      "completedAt": "2025-12-25T20:00:00Z"
+    }
+  ]
 }
-

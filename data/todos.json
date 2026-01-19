@@ -1,7 +1,62 @@
 {
   "version": 1,
-  "lastUpdated": "2026-01-19T00:00:00Z",
-  "nextId": 1,
-  "todos": []
+  "lastUpdated": "2026-01-20T10:00:00Z",
+  "nextId": 6,
+  "todos": [
+    {
+      "id": 1,
+      "title": "Prepare Sunday Service",
+      "description": "Coordinate with worship team and prepare sermon notes",
+      "assignedElders": [1, 3],
+      "dueDate": "2026-01-26",
+      "priority": "high",
+      "recurring": "weekly",
+      "isStarred": true,
+      "createdAt": "2026-01-15T08:00:00Z"
+    },
+    {
+      "id": 2,
+      "title": "Visit Mrs. Lakshmi",
+      "description": "Hospital visit and prayer for healing",
+      "assignedElders": [2, 4],
+      "dueDate": "2026-01-22",
+      "priority": "high",
+      "recurring": "",
+      "isStarred": true,
+      "createdAt": "2026-01-18T09:30:00Z"
+    },
+    {
+      "id": 3,
+      "title": "Youth Fellowship Planning",
+      "description": "Plan activities for next month's youth meet",
+      "assignedElders": [5],
+      "dueDate": "2026-01-28",
+      "priority": "medium",
+      "recurring": "monthly",
+      "isStarred": false,
+      "createdAt": "2026-01-19T14:00:00Z"
+    },
+    {
+      "id": 4,
+      "title": "Budget Review Meeting",
+      "description": "Q1 financial planning and budget allocation",
+      "assignedElders": [1, 2, 3, 4, 5],
+      "dueDate": "2026-01-25",
+      "priority": "medium",
+      "recurring": "",
+      "isStarred": false,
+      "createdAt": "2026-01-17T11:00:00Z"
+    },
+    {
+      "id": 5,
+      "title": "New Member Follow-up",
+      "description": "Call and welcome new members from last Sunday",
+      "assignedElders": [3, 5],
+      "dueDate": "2026-01-21",
+      "priority": "low",
+      "recurring": "",
+      "isStarred": false,
+      "createdAt": "2026-01-20T07:00:00Z"
+    }
+  ]
 }
-
