@@ -1283,7 +1283,7 @@
                 </h1>
                 <div class="header-controls">
                     <select class="lang-selector" id="langSelector">
-                        <option value="en">EN</option>
+                        <option value="en">English</option>
                         <option value="ta">தமிழ்</option>
                     </select>
                     <div class="sync-status">
@@ -1658,21 +1658,21 @@
             },
             ta: {
                 appTitle: 'மூப்பர் பணிகள்',
-                active: 'செயலில்',
+                active: 'நடப்பு பணிகள்',
                 myTasks: 'என் பணிகள்',
-                starred: 'முக்கியம்',
-                completed: 'முடிந்தது',
+                starred: 'சிறப்புப் பணிகள்',
+                completed: 'முடித்தவை',
                 elders: 'மூப்பர்கள்',
                 searchTasks: 'பணிகளை தேடு...',
-                addTask: 'பணி சேர்',
-                editTask: 'பணி திருத்து',
+                addTask: 'பணியை சேர்',
+                editTask: 'பணியை திருத்து',
                 title: 'தலைப்பு',
-                description: 'விவரம்',
+                description: 'குறிப்பு',
                 dueDate: 'முடிவு தேதி',
-                priority: 'முன்னுரிமை',
-                recurring: 'திரும்பத்திரும்ப',
-                assignToElders: 'மூப்பர்களுக்கு ஒதுக்கு',
-                markAsImportant: 'முக்கியம் எனக் குறி',
+                priority: 'முக்கியத்துவம்',
+                recurring: 'தொடர் பணி',
+                assignToElders: 'நியமிக்கப்பட்டவர்கள்',
+                markAsImportant: 'சிறப்புப் பணி',
                 save: 'சேமி',
                 cancel: 'ரத்து',
                 add: 'சேர்',
@@ -1689,8 +1689,8 @@
                 oldestFirst: 'பழையது முதலில்',
                 dueDateEarliest: 'முடிவு தேதி (விரைவில்)',
                 dueDateLatest: 'முடிவு தேதி (தாமதமாக)',
-                priorityHighToLow: 'முன்னுரிமை (உயர் → குறை)',
-                priorityLowToHigh: 'முன்னுரிமை (குறை → உயர்)',
+                priorityHighToLow: 'முக்கியத்துவம் (உயர் → குறை)',
+                priorityLowToHigh: 'முக்கியத்துவம் (குறை → உயர்)',
                 groupByElder: 'மூப்பர் வாரியாக',
                 noActiveTasks: 'செயலில் பணிகள் இல்லை',
                 addTaskToStart: 'தொடங்க ஒரு பணி சேர்க்கவும்!',
@@ -1708,9 +1708,9 @@
                 today: 'இன்று',
                 tomorrow: 'நாளை',
                 overdue: 'தாமதம்',
-                synced: 'ஒத்திசைக்கப்பட்டது',
-                syncing: 'ஒத்திசைக்கிறது...',
-                syncError: 'ஒத்திசைவு பிழை',
+                synced: 'Synced',
+                syncing: 'Syncing...',
+                syncError: 'Sync Error',
                 taskAdded: 'பணி சேர்க்கப்பட்டது!',
                 taskUpdated: 'பணி புதுப்பிக்கப்பட்டது!',
                 taskDeleted: 'பணி நீக்கப்பட்டது!',
@@ -2029,6 +2029,9 @@
                     const todoData = { ...todo };
                     delete todoData.completedAt;
                     delete todoData.id;
+                    // Clear recurring to prevent duplicate tasks when completed again
+                    // (the recurring instance was already created when first completed)
+                    todoData.recurring = '';
                     todoData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
                     
                     // Add to active, remove from completed
