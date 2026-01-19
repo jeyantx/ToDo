@@ -2,10 +2,2611 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0ea5e9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Elder ToDo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           CSS VARIABLES & RESET
+           ============================================ */
+        :root {
+            --primary-50: #f0f9ff;
+            --primary-100: #e0f2fe;
+            --primary-200: #bae6fd;
+            --primary-300: #7dd3fc;
+            --primary-400: #38bdf8;
+            --primary-500: #0ea5e9;
+            --primary-600: #0284c7;
+            --primary-700: #0369a1;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --success: #22c55e;
+            --success-light: #f0fdf4;
+            --star: #fbbf24;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --transition: all 0.2s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--primary-50) 0%, var(--gray-50) 50%, var(--primary-100) 100%);
+            min-height: 100vh;
+            color: var(--gray-800);
+            line-height: 1.5;
+        }
+
+        /* ============================================
+           LAYOUT
+           ============================================ */
+        .app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: white;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 768px) {
+            .app-container {
+                margin: 20px auto;
+                min-height: calc(100vh - 40px);
+                border-radius: var(--radius);
+                overflow: hidden;
+            }
+        }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+        .header {
+            background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+            color: white;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .app-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-title svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            opacity: 0.9;
+            background: rgba(255,255,255,0.15);
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+
+        .sync-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        .sync-dot.syncing {
+            background: var(--warning);
+            animation: pulse 1s infinite;
+        }
+
+        .sync-dot.error {
+            background: var(--danger);
+        }
+
+        .settings-btn {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: var(--transition);
+        }
+
+        .settings-btn:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.15);
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        /* ============================================
+           SEARCH BAR
+           ============================================ */
+        .search-container {
+            padding: 12px 16px;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            font-family: inherit;
+            background: white;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-400);
+            box-shadow: 0 0 0 3px var(--primary-100);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            pointer-events: none;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--gray-200);
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-600);
+            transition: var(--transition);
+        }
+
+        .search-clear.visible {
+            display: flex;
+        }
+
+        .search-clear:hover {
+            background: var(--gray-300);
+        }
+
+        /* ============================================
+           TABS
+           ============================================ */
+        .tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: max-content;
+            padding: 14px 20px;
+            border: none;
+            background: none;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--gray-500);
+            cursor: pointer;
+            position: relative;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: var(--primary-600);
+            background: var(--primary-50);
+        }
+
+        .tab.active {
+            color: var(--primary-600);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-500);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .tab-badge {
+            background: var(--gray-200);
+            color: var(--gray-600);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .tab.active .tab-badge {
+            background: var(--primary-100);
+            color: var(--primary-700);
+        }
+
+        /* ============================================
+           CONTENT AREA
+           ============================================ */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 100px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 16px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ============================================
+           FILTER & SORT BAR
+           ============================================ */
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.85rem;
+            background: white;
+            color: var(--gray-700);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-400);
+        }
+
+        .group-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            background: white;
+            font-family: inherit;
+            font-size: 0.85rem;
+            color: var(--gray-700);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .group-toggle.active {
+            background: var(--primary-100);
+            border-color: var(--primary-300);
+            color: var(--primary-700);
+        }
+
+        /* ============================================
+           TODO CARDS
+           ============================================ */
+        .todo-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .group-header {
+            background: var(--primary-50);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            color: var(--primary-700);
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .group-header:first-child {
+            margin-top: 0;
+        }
+
+        .group-count {
+            background: var(--primary-200);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+
+        .todo-card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius);
+            padding: 16px;
+            transition: var(--transition);
+            cursor: grab;
+            position: relative;
+        }
+
+        .todo-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-200);
+        }
+
+        .todo-card.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .todo-card.drag-over {
+            border-color: var(--primary-400);
+            border-style: dashed;
+        }
+
+        .todo-card.completed {
+            opacity: 0.7;
+            background: var(--gray-50);
+        }
+
+        .todo-card.completed .todo-title {
+            text-decoration: line-through;
+            color: var(--gray-500);
+        }
+
+        .todo-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .todo-checkbox {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            border: 2px solid var(--gray-300);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            margin-top: 2px;
+        }
+
+        .todo-checkbox:hover {
+            border-color: var(--primary-400);
+        }
+
+        .todo-checkbox.checked {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .todo-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .todo-title-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .todo-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--gray-800);
+            word-break: break-word;
+        }
+
+        .todo-star {
+            color: var(--gray-300);
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .todo-star:hover {
+            color: var(--star);
+        }
+
+        .todo-star.starred {
+            color: var(--star);
+        }
+
+        .todo-description {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            margin-bottom: 12px;
+            word-break: break-word;
+        }
+
+        .todo-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .todo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-priority {
+            background: var(--gray-100);
+            color: var(--gray-600);
+        }
+
+        .badge-priority.high {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .badge-priority.medium {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .badge-priority.low {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .badge-due {
+            background: var(--gray-100);
+            color: var(--gray-600);
+        }
+
+        .badge-due.overdue {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .badge-due.today {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .badge-recurring {
+            background: var(--primary-100);
+            color: var(--primary-700);
+        }
+
+        .todo-elders {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .elder-tag {
+            background: var(--primary-100);
+            color: var(--primary-700);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .todo-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--gray-100);
+        }
+
+        .todo-action-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            background: white;
+            font-family: inherit;
+            font-size: 0.8rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: var(--transition);
+        }
+
+        .todo-action-btn:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-300);
+        }
+
+        .todo-action-btn.delete:hover {
+            background: var(--danger-light);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        /* ============================================
+           EMPTY STATE
+           ============================================ */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray-500);
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            color: var(--gray-300);
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-size: 1.1rem;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 0.9rem;
+        }
+
+        /* ============================================
+           ELDER MANAGEMENT
+           ============================================ */
+        .elder-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .elder-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius);
+            transition: var(--transition);
+        }
+
+        .elder-card:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .elder-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-400) 0%, var(--primary-600) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .elder-info {
+            flex: 1;
+        }
+
+        .elder-name {
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .elder-task-count {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+        }
+
+        .elder-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .elder-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-500);
+            transition: var(--transition);
+        }
+
+        .elder-btn:hover {
+            background: var(--gray-50);
+            color: var(--gray-700);
+        }
+
+        .elder-btn.delete:hover {
+            background: var(--danger-light);
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .add-elder-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .add-elder-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .add-elder-input:focus {
+            outline: none;
+            border-color: var(--primary-400);
+        }
+
+        /* ============================================
+           FAB (Floating Action Button)
+           ============================================ */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            z-index: 50;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 20px -5px rgba(14, 165, 233, 0.4);
+        }
+
+        .fab:active {
+            transform: scale(0.95);
+        }
+
+        @media (min-width: 768px) {
+            .fab {
+                right: calc(50% - 300px + 24px);
+            }
+        }
+
+        /* ============================================
+           MODAL
+           ============================================ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 200;
+            padding: 0;
+        }
+
+        @media (min-width: 768px) {
+            .modal-overlay {
+                align-items: center;
+                padding: 20px;
+            }
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            border-radius: var(--radius) var(--radius) 0 0;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s ease;
+        }
+
+        @media (min-width: 768px) {
+            .modal {
+                border-radius: var(--radius);
+                max-height: 85vh;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: var(--gray-100);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-600);
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background: var(--gray-200);
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary-400);
+            box-shadow: 0 0 0 3px var(--primary-100);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .form-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .form-checkbox-item:hover {
+            background: var(--primary-50);
+            border-color: var(--primary-200);
+        }
+
+        .form-checkbox-item.selected {
+            background: var(--primary-100);
+            border-color: var(--primary-300);
+        }
+
+        .form-checkbox-item input {
+            display: none;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 400px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* ============================================
+           BUTTONS
+           ============================================ */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-200);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ============================================
+           TOAST NOTIFICATIONS
+           ============================================ */
+        .toast-container {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .toast {
+            background: var(--gray-800);
+            color: white;
+            padding: 14px 20px;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: toastIn 0.3s ease;
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        .toast.warning {
+            background: var(--warning);
+        }
+
+        @keyframes toastIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* ============================================
+           LOADING SPINNER
+           ============================================ */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--primary-500);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============================================
+           CONFIRMATION DIALOG
+           ============================================ */
+        .confirm-dialog {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .confirm-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 16px;
+            background: var(--danger-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--danger);
+        }
+
+        .confirm-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 8px;
+        }
+
+        .confirm-message {
+            color: var(--gray-600);
+            margin-bottom: 24px;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        /* ============================================
+           UTILITY CLASSES
+           ============================================ */
+        .hidden {
+            display: none !important;
+        }
+
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .text-muted {
+            color: var(--gray-500);
+        }
+
+        .mt-2 { margin-top: 8px; }
+        .mt-4 { margin-top: 16px; }
+        .mb-2 { margin-bottom: 8px; }
+        .mb-4 { margin-bottom: 16px; }
+    </style>
 </head>
 <body>
-    <h1>Hello World</h1>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-top">
+                <h1 class="app-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                    Elder ToDo
+                </h1>
+                <button class="settings-btn" id="settingsBtn" title="Settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                </button>
+                <div class="sync-status">
+                    <span class="sync-dot" id="syncDot"></span>
+                    <span id="syncText">Synced</span>
+                </div>
+            </div>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span>Total</span>
+                    <span class="stat-value" id="statTotal">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Active</span>
+                    <span class="stat-value" id="statActive">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Completed</span>
+                    <span class="stat-value" id="statCompleted">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Starred</span>
+                    <span class="stat-value" id="statStarred">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Search -->
+        <div class="search-container">
+            <div class="search-wrapper">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="M21 21l-4.35-4.35"/>
+                </svg>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search tasks...">
+                <button class="search-clear" id="searchClear">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <nav class="tabs">
+            <button class="tab active" data-tab="active">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                </svg>
+                Active
+                <span class="tab-badge" id="tabBadgeActive">0</span>
+            </button>
+            <button class="tab" data-tab="starred">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                Starred
+                <span class="tab-badge" id="tabBadgeStarred">0</span>
+            </button>
+            <button class="tab" data-tab="completed">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 11 12 14 22 4"/>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                </svg>
+                Completed
+                <span class="tab-badge" id="tabBadgeCompleted">0</span>
+            </button>
+            <button class="tab" data-tab="elders">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                Elders
+            </button>
+        </nav>
+
+        <!-- Content -->
+        <main class="content">
+            <!-- Active Tab -->
+            <div class="tab-content active" id="tab-active">
+                <div class="filter-bar">
+                    <select class="filter-select" id="sortSelect">
+                        <option value="createdAt-desc">Newest First</option>
+                        <option value="createdAt-asc">Oldest First</option>
+                        <option value="dueDate-asc">Due Date (Earliest)</option>
+                        <option value="dueDate-desc">Due Date (Latest)</option>
+                        <option value="priority-desc">Priority (High to Low)</option>
+                        <option value="priority-asc">Priority (Low to High)</option>
+                    </select>
+                    <button class="group-toggle" id="groupByElder">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                        </svg>
+                        Group by Elder
+                    </button>
+                </div>
+                <div class="todo-list" id="activeList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Starred Tab -->
+            <div class="tab-content" id="tab-starred">
+                <div class="todo-list" id="starredList"></div>
+            </div>
+
+            <!-- Completed Tab -->
+            <div class="tab-content" id="tab-completed">
+                <div class="todo-list" id="completedList"></div>
+            </div>
+
+            <!-- Elders Tab -->
+            <div class="tab-content" id="tab-elders">
+                <form class="add-elder-form" id="addElderForm">
+                    <input type="text" class="add-elder-input" id="newElderName" placeholder="Enter elder name..." required>
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </form>
+                <div class="elder-list" id="elderList"></div>
+            </div>
+        </main>
+
+        <!-- FAB -->
+        <button class="fab" id="addTodoBtn" title="Add new task">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Add/Edit Todo Modal -->
+    <div class="modal-overlay" id="todoModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="todoModalTitle">Add Task</h2>
+                <button class="modal-close" id="closeTodoModal">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="todoForm">
+                    <input type="hidden" id="todoId">
+                    <div class="form-group">
+                        <label class="form-label">Title *</label>
+                        <input type="text" class="form-input" id="todoTitle" placeholder="What needs to be done?" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-textarea" id="todoDescription" placeholder="Add more details..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Due Date</label>
+                            <input type="date" class="form-input" id="todoDueDate">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Priority</label>
+                            <select class="form-select" id="todoPriority">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Recurring</label>
+                        <select class="form-select" id="todoRecurring">
+                            <option value="">None</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Assign to Elders</label>
+                        <div class="form-checkbox-group" id="elderCheckboxes"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-checkbox-item" id="starredCheckbox">
+                            <input type="checkbox" id="todoStarred">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            </svg>
+                            Mark as important
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelTodoBtn">Cancel</button>
+                <button class="btn btn-primary" id="saveTodoBtn">Save Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Elder Modal -->
+    <div class="modal-overlay" id="elderModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Elder</h2>
+                <button class="modal-close" id="closeElderModal">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editElderId">
+                <div class="form-group">
+                    <label class="form-label">Elder Name</label>
+                    <input type="text" class="form-input" id="editElderName" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelElderBtn">Cancel</button>
+                <button class="btn btn-primary" id="saveElderBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Dialog Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal" style="max-width: 380px;">
+            <div class="modal-body">
+                <div class="confirm-dialog">
+                    <div class="confirm-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </div>
+                    <h3 class="confirm-title" id="confirmTitle">Delete Task?</h3>
+                    <p class="confirm-message" id="confirmMessage">This action cannot be undone.</p>
+                    <div class="confirm-buttons">
+                        <button class="btn btn-secondary" id="confirmCancel">Cancel</button>
+                        <button class="btn btn-danger" id="confirmOk">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Token Setup Modal -->
+    <div class="modal-overlay" id="tokenModal">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-header">
+                <h2 class="modal-title">🔐 Setup GitHub Token</h2>
+                <button class="modal-close" id="closeTokenModal">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--gray-600); margin-bottom: 16px; font-size: 0.9rem;">
+                    To save changes, enter your GitHub Personal Access Token with <strong>repo</strong> permissions.
+                    The token is stored locally in your browser only.
+                </p>
+                <div class="form-group">
+                    <label class="form-label">GitHub Personal Access Token</label>
+                    <input type="password" class="form-input" id="githubTokenInput" placeholder="ghp_xxxxxxxxxxxx or github_pat_xxxx">
+                </div>
+                <p style="color: var(--gray-500); font-size: 0.8rem;">
+                    <a href="https://github.com/settings/tokens?type=beta" target="_blank" style="color: var(--primary-600);">Create a token here</a> 
+                    → Select your repo → Permissions: Contents (Read & Write)
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelTokenBtn">Cancel</button>
+                <button class="btn btn-primary" id="saveTokenBtn">Save Token</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ============================================
+           CONFIGURATION
+           ============================================ */
+        const CONFIG = {
+            GITHUB_OWNER: 'jeyantx',
+            GITHUB_REPO: 'ToDo',
+            ELDERS_FILE: 'data/elders.json',
+            TODOS_FILE: 'data/todos.json',
+            TOKEN_KEY: 'elder_todo_github_token'
+        };
+
+        const API_BASE = `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/contents`;
+
+        /* ============================================
+           TOKEN MANAGEMENT
+           ============================================ */
+        function getToken() {
+            return localStorage.getItem(CONFIG.TOKEN_KEY);
+        }
+
+        function setToken(token) {
+            localStorage.setItem(CONFIG.TOKEN_KEY, token);
+        }
+
+        function clearToken() {
+            localStorage.removeItem(CONFIG.TOKEN_KEY);
+        }
+
+        function hasToken() {
+            return !!getToken();
+        }
+
+        async function promptForToken() {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('tokenModal');
+                const input = document.getElementById('githubTokenInput');
+                const saveBtn = document.getElementById('saveTokenBtn');
+                const cancelBtn = document.getElementById('cancelTokenBtn');
+                const closeBtn = document.getElementById('closeTokenModal');
+                
+                input.value = getToken() || '';
+                modal.classList.add('active');
+                input.focus();
+                
+                const cleanup = () => {
+                    modal.classList.remove('active');
+                    saveBtn.onclick = null;
+                    cancelBtn.onclick = null;
+                    closeBtn.onclick = null;
+                };
+                
+                saveBtn.onclick = () => {
+                    const token = input.value.trim();
+                    if (token) {
+                        setToken(token);
+                        cleanup();
+                        resolve(token);
+                    } else {
+                        showToast('Please enter a valid token', 'error');
+                    }
+                };
+                
+                cancelBtn.onclick = closeBtn.onclick = () => {
+                    cleanup();
+                    resolve(null);
+                };
+            });
+        }
+
+        /* ============================================
+           STATE MANAGEMENT
+           ============================================ */
+        let state = {
+            elders: { version: 1, lastUpdated: null, elders: [] },
+            todos: { version: 1, lastUpdated: null, nextId: 1, todos: [] },
+            eldersSha: null,
+            todosSha: null,
+            currentTab: 'active',
+            searchQuery: '',
+            sortBy: 'createdAt-desc',
+            groupByElder: false,
+            editingTodoId: null,
+            confirmCallback: null
+        };
+
+        /* ============================================
+           GITHUB API FUNCTIONS
+           ============================================ */
+        async function fetchFile(path) {
+            try {
+                // Use unauthenticated request for public repo (no token needed for reading)
+                const response = await fetch(`${API_BASE}/${path}`, {
+                    headers: {
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        return null;
+                    }
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const content = JSON.parse(atob(data.content));
+                return { content, sha: data.sha };
+            } catch (error) {
+                console.error(`Error fetching ${path}:`, error);
+                throw error;
+            }
+        }
+
+        async function saveFile(path, content, sha, message) {
+            // Ensure we have a token before saving
+            let token = getToken();
+            if (!token) {
+                token = await promptForToken();
+                if (!token) {
+                    throw new Error('TOKEN_REQUIRED');
+                }
+            }
+            
+            setSyncStatus('syncing');
+            try {
+                const body = {
+                    message: message || `Update ${path}`,
+                    content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2)))),
+                    sha: sha
+                };
+                
+                const response = await fetch(`${API_BASE}/${path}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+                
+                // If unauthorized, clear token and prompt again
+                if (response.status === 401) {
+                    clearToken();
+                    showToast('Token invalid or expired. Please enter a new token.', 'error');
+                    token = await promptForToken();
+                    if (!token) {
+                        throw new Error('TOKEN_REQUIRED');
+                    }
+                    // Retry with new token
+                    return saveFile(path, content, sha, message);
+                }
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    if (response.status === 409 || errorData.message?.includes('sha')) {
+                        // Version conflict - reload data
+                        showToast('Data was modified elsewhere. Reloading...', 'warning');
+                        await loadData();
+                        throw new Error('VERSION_CONFLICT');
+                    }
+                    throw new Error(`HTTP ${response.status}: ${errorData.message}`);
+                }
+                
+                const data = await response.json();
+                setSyncStatus('synced');
+                return data.content.sha;
+            } catch (error) {
+                setSyncStatus('error');
+                console.error(`Error saving ${path}:`, error);
+                throw error;
+            }
+        }
+
+        /* ============================================
+           DATA OPERATIONS
+           ============================================ */
+        async function loadData() {
+            setSyncStatus('syncing');
+            try {
+                const [eldersData, todosData] = await Promise.all([
+                    fetchFile(CONFIG.ELDERS_FILE),
+                    fetchFile(CONFIG.TODOS_FILE)
+                ]);
+                
+                if (eldersData) {
+                    state.elders = eldersData.content;
+                    state.eldersSha = eldersData.sha;
+                }
+                
+                if (todosData) {
+                    state.todos = todosData.content;
+                    state.todosSha = todosData.sha;
+                }
+                
+                setSyncStatus('synced');
+                renderAll();
+            } catch (error) {
+                setSyncStatus('error');
+                showToast('Failed to load data. Please refresh.', 'error');
+            }
+        }
+
+        async function saveElders() {
+            state.elders.lastUpdated = new Date().toISOString();
+            state.elders.version++;
+            try {
+                state.eldersSha = await saveFile(CONFIG.ELDERS_FILE, state.elders, state.eldersSha, 'Update elders');
+                return true;
+            } catch (error) {
+                if (error.message !== 'VERSION_CONFLICT') {
+                    showToast('Failed to save elders.', 'error');
+                }
+                return false;
+            }
+        }
+
+        async function saveTodos() {
+            state.todos.lastUpdated = new Date().toISOString();
+            state.todos.version++;
+            try {
+                state.todosSha = await saveFile(CONFIG.TODOS_FILE, state.todos, state.todosSha, 'Update todos');
+                return true;
+            } catch (error) {
+                if (error.message !== 'VERSION_CONFLICT') {
+                    showToast('Failed to save tasks.', 'error');
+                }
+                return false;
+            }
+        }
+
+        /* ============================================
+           ELDER OPERATIONS
+           ============================================ */
+        async function addElder(name) {
+            const trimmedName = name.trim();
+            if (!trimmedName) return;
+            
+            const maxId = state.elders.elders.reduce((max, e) => Math.max(max, e.id), 0);
+            const newElder = {
+                id: maxId + 1,
+                name: trimmedName,
+                createdAt: new Date().toISOString()
+            };
+            
+            state.elders.elders.push(newElder);
+            if (await saveElders()) {
+                showToast(`Elder "${trimmedName}" added!`, 'success');
+                renderAll();
+            }
+        }
+
+        async function updateElder(id, name) {
+            const elder = state.elders.elders.find(e => e.id === id);
+            if (elder) {
+                elder.name = name.trim();
+                if (await saveElders()) {
+                    showToast('Elder updated!', 'success');
+                    renderAll();
+                }
+            }
+        }
+
+        async function deleteElder(id) {
+            const elder = state.elders.elders.find(e => e.id === id);
+            if (!elder) return;
+            
+            showConfirm(
+                `Delete "${elder.name}"?`,
+                'This elder will be removed from all tasks.',
+                async () => {
+                    state.elders.elders = state.elders.elders.filter(e => e.id !== id);
+                    // Remove elder from all todos
+                    state.todos.todos.forEach(todo => {
+                        todo.assignedElders = todo.assignedElders.filter(eid => eid !== id);
+                    });
+                    
+                    await Promise.all([saveElders(), saveTodos()]);
+                    showToast('Elder deleted!', 'success');
+                    renderAll();
+                }
+            );
+        }
+
+        /* ============================================
+           TODO OPERATIONS
+           ============================================ */
+        async function addTodo(todoData) {
+            const newTodo = {
+                id: state.todos.nextId++,
+                title: todoData.title.trim(),
+                description: todoData.description?.trim() || '',
+                assignedElders: todoData.assignedElders || [],
+                dueDate: todoData.dueDate || null,
+                priority: todoData.priority || 'medium',
+                isStarred: todoData.isStarred || false,
+                isCompleted: false,
+                completedAt: null,
+                createdAt: new Date().toISOString(),
+                recurring: todoData.recurring || null,
+                order: state.todos.todos.length
+            };
+            
+            state.todos.todos.push(newTodo);
+            if (await saveTodos()) {
+                showToast('Task added!', 'success');
+                renderAll();
+                return true;
+            }
+            return false;
+        }
+
+        async function updateTodo(id, todoData) {
+            const todo = state.todos.todos.find(t => t.id === id);
+            if (todo) {
+                Object.assign(todo, {
+                    title: todoData.title.trim(),
+                    description: todoData.description?.trim() || '',
+                    assignedElders: todoData.assignedElders || [],
+                    dueDate: todoData.dueDate || null,
+                    priority: todoData.priority || 'medium',
+                    isStarred: todoData.isStarred || false,
+                    recurring: todoData.recurring || null
+                });
+                
+                if (await saveTodos()) {
+                    showToast('Task updated!', 'success');
+                    renderAll();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        async function deleteTodo(id) {
+            const todo = state.todos.todos.find(t => t.id === id);
+            if (!todo) return;
+            
+            showConfirm(
+                'Delete Task?',
+                `"${todo.title}" will be permanently deleted.`,
+                async () => {
+                    state.todos.todos = state.todos.todos.filter(t => t.id !== id);
+                    if (await saveTodos()) {
+                        showToast('Task deleted!', 'success');
+                        renderAll();
+                    }
+                }
+            );
+        }
+
+        async function toggleComplete(id) {
+            const todo = state.todos.todos.find(t => t.id === id);
+            if (todo) {
+                todo.isCompleted = !todo.isCompleted;
+                todo.completedAt = todo.isCompleted ? new Date().toISOString() : null;
+                
+                // Handle recurring tasks
+                if (todo.isCompleted && todo.recurring) {
+                    const newDueDate = calculateNextDueDate(todo.dueDate, todo.recurring);
+                    if (newDueDate) {
+                        // Create new recurring task
+                        const newTodo = {
+                            ...todo,
+                            id: state.todos.nextId++,
+                            isCompleted: false,
+                            completedAt: null,
+                            dueDate: newDueDate,
+                            createdAt: new Date().toISOString()
+                        };
+                        state.todos.todos.push(newTodo);
+                        showToast('Recurring task created for next period!', 'success');
+                    }
+                }
+                
+                if (await saveTodos()) {
+                    if (!todo.recurring || !todo.isCompleted) {
+                        showToast(todo.isCompleted ? 'Task completed!' : 'Task uncompleted!', 'success');
+                    }
+                    renderAll();
+                }
+            }
+        }
+
+        async function toggleStar(id) {
+            const todo = state.todos.todos.find(t => t.id === id);
+            if (todo) {
+                todo.isStarred = !todo.isStarred;
+                if (await saveTodos()) {
+                    renderAll();
+                }
+            }
+        }
+
+        function calculateNextDueDate(currentDueDate, recurring) {
+            if (!currentDueDate) return null;
+            const date = new Date(currentDueDate);
+            
+            switch (recurring) {
+                case 'daily':
+                    date.setDate(date.getDate() + 1);
+                    break;
+                case 'weekly':
+                    date.setDate(date.getDate() + 7);
+                    break;
+                case 'monthly':
+                    date.setMonth(date.getMonth() + 1);
+                    break;
+                default:
+                    return null;
+            }
+            
+            return date.toISOString().split('T')[0];
+        }
+
+        async function reorderTodos(fromIndex, toIndex, listType) {
+            let todos;
+            if (listType === 'active') {
+                todos = getFilteredTodos().filter(t => !t.isCompleted);
+            } else if (listType === 'starred') {
+                todos = getFilteredTodos().filter(t => t.isStarred && !t.isCompleted);
+            } else {
+                return;
+            }
+            
+            const [movedTodo] = todos.splice(fromIndex, 1);
+            todos.splice(toIndex, 0, movedTodo);
+            
+            // Update order values
+            todos.forEach((todo, index) => {
+                const originalTodo = state.todos.todos.find(t => t.id === todo.id);
+                if (originalTodo) {
+                    originalTodo.order = index;
+                }
+            });
+            
+            await saveTodos();
+            renderAll();
+        }
+
+        /* ============================================
+           FILTERING & SORTING
+           ============================================ */
+        function getFilteredTodos() {
+            let todos = [...state.todos.todos];
+            
+            // Search filter
+            if (state.searchQuery) {
+                const query = state.searchQuery.toLowerCase();
+                todos = todos.filter(t => 
+                    t.title.toLowerCase().includes(query) ||
+                    t.description.toLowerCase().includes(query)
+                );
+            }
+            
+            return todos;
+        }
+
+        function sortTodos(todos) {
+            const [field, direction] = state.sortBy.split('-');
+            const multiplier = direction === 'asc' ? 1 : -1;
+            
+            const priorityOrder = { high: 3, medium: 2, low: 1 };
+            
+            return todos.sort((a, b) => {
+                let comparison = 0;
+                
+                switch (field) {
+                    case 'createdAt':
+                        comparison = new Date(a.createdAt) - new Date(b.createdAt);
+                        break;
+                    case 'dueDate':
+                        if (!a.dueDate && !b.dueDate) comparison = 0;
+                        else if (!a.dueDate) comparison = 1;
+                        else if (!b.dueDate) comparison = -1;
+                        else comparison = new Date(a.dueDate) - new Date(b.dueDate);
+                        break;
+                    case 'priority':
+                        comparison = (priorityOrder[a.priority] || 0) - (priorityOrder[b.priority] || 0);
+                        break;
+                    default:
+                        comparison = (a.order || 0) - (b.order || 0);
+                }
+                
+                return comparison * multiplier;
+            });
+        }
+
+        function groupTodosByElder(todos) {
+            const groups = new Map();
+            const unassigned = [];
+            
+            todos.forEach(todo => {
+                if (todo.assignedElders.length === 0) {
+                    unassigned.push(todo);
+                } else {
+                    todo.assignedElders.forEach(elderId => {
+                        if (!groups.has(elderId)) {
+                            groups.set(elderId, []);
+                        }
+                        groups.get(elderId).push(todo);
+                    });
+                }
+            });
+            
+            return { groups, unassigned };
+        }
+
+        /* ============================================
+           RENDERING
+           ============================================ */
+        function renderAll() {
+            updateStats();
+            renderTabs();
+            
+            switch (state.currentTab) {
+                case 'active':
+                    renderActiveTodos();
+                    break;
+                case 'starred':
+                    renderStarredTodos();
+                    break;
+                case 'completed':
+                    renderCompletedTodos();
+                    break;
+                case 'elders':
+                    renderElders();
+                    break;
+            }
+            
+            renderElderCheckboxes();
+        }
+
+        function updateStats() {
+            const todos = state.todos.todos;
+            const active = todos.filter(t => !t.isCompleted).length;
+            const completed = todos.filter(t => t.isCompleted).length;
+            const starred = todos.filter(t => t.isStarred && !t.isCompleted).length;
+            
+            document.getElementById('statTotal').textContent = todos.length;
+            document.getElementById('statActive').textContent = active;
+            document.getElementById('statCompleted').textContent = completed;
+            document.getElementById('statStarred').textContent = starred;
+            
+            document.getElementById('tabBadgeActive').textContent = active;
+            document.getElementById('tabBadgeStarred').textContent = starred;
+            document.getElementById('tabBadgeCompleted').textContent = completed;
+        }
+
+        function renderTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.tab === state.currentTab);
+            });
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.id === `tab-${state.currentTab}`);
+            });
+        }
+
+        function renderActiveTodos() {
+            const container = document.getElementById('activeList');
+            let todos = sortTodos(getFilteredTodos().filter(t => !t.isCompleted));
+            
+            if (todos.length === 0) {
+                container.innerHTML = renderEmptyState('No active tasks', 'Add a task to get started!');
+                return;
+            }
+            
+            if (state.groupByElder) {
+                const { groups, unassigned } = groupTodosByElder(todos);
+                let html = '';
+                
+                state.elders.elders.forEach(elder => {
+                    const elderTodos = groups.get(elder.id) || [];
+                    if (elderTodos.length > 0) {
+                        html += `<div class="group-header">${elder.name}<span class="group-count">${elderTodos.length}</span></div>`;
+                        elderTodos.forEach((todo, index) => {
+                            html += renderTodoCard(todo, index, 'active');
+                        });
+                    }
+                });
+                
+                if (unassigned.length > 0) {
+                    html += `<div class="group-header">Unassigned<span class="group-count">${unassigned.length}</span></div>`;
+                    unassigned.forEach((todo, index) => {
+                        html += renderTodoCard(todo, index, 'active');
+                    });
+                }
+                
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = todos.map((todo, index) => renderTodoCard(todo, index, 'active')).join('');
+            }
+            
+            initDragAndDrop(container, 'active');
+        }
+
+        function renderStarredTodos() {
+            const container = document.getElementById('starredList');
+            const todos = sortTodos(getFilteredTodos().filter(t => t.isStarred && !t.isCompleted));
+            
+            if (todos.length === 0) {
+                container.innerHTML = renderEmptyState('No starred tasks', 'Star important tasks to see them here');
+                return;
+            }
+            
+            container.innerHTML = todos.map((todo, index) => renderTodoCard(todo, index, 'starred')).join('');
+            initDragAndDrop(container, 'starred');
+        }
+
+        function renderCompletedTodos() {
+            const container = document.getElementById('completedList');
+            const todos = getFilteredTodos().filter(t => t.isCompleted);
+            todos.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+            
+            if (todos.length === 0) {
+                container.innerHTML = renderEmptyState('No completed tasks', 'Completed tasks will appear here');
+                return;
+            }
+            
+            container.innerHTML = todos.map((todo, index) => renderTodoCard(todo, index, 'completed')).join('');
+        }
+
+        function renderTodoCard(todo, index, listType) {
+            const elder = id => state.elders.elders.find(e => e.id === id);
+            const dueDateClass = getDueDateClass(todo.dueDate);
+            const priorityLabel = { high: 'High', medium: 'Medium', low: 'Low' };
+            const recurringLabel = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' };
+            
+            return `
+                <div class="todo-card ${todo.isCompleted ? 'completed' : ''}" data-id="${todo.id}" data-index="${index}" draggable="${listType !== 'completed'}">
+                    <div class="todo-header">
+                        <div class="todo-checkbox ${todo.isCompleted ? 'checked' : ''}" onclick="toggleComplete(${todo.id})">
+                            ${todo.isCompleted ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
+                        </div>
+                        <div class="todo-info">
+                            <div class="todo-title-row">
+                                <span class="todo-title">${escapeHtml(todo.title)}</span>
+                                <svg class="todo-star ${todo.isStarred ? 'starred' : ''}" width="18" height="18" viewBox="0 0 24 24" fill="${todo.isStarred ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" onclick="toggleStar(${todo.id})">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                </svg>
+                            </div>
+                            ${todo.description ? `<p class="todo-description">${escapeHtml(todo.description)}</p>` : ''}
+                            <div class="todo-meta">
+                                <span class="todo-badge badge-priority ${todo.priority}">${priorityLabel[todo.priority]}</span>
+                                ${todo.dueDate ? `<span class="todo-badge badge-due ${dueDateClass}">${formatDate(todo.dueDate)}</span>` : ''}
+                                ${todo.recurring ? `<span class="todo-badge badge-recurring">🔄 ${recurringLabel[todo.recurring]}</span>` : ''}
+                            </div>
+                            ${todo.assignedElders.length > 0 ? `
+                                <div class="todo-elders">
+                                    ${todo.assignedElders.map(eid => {
+                                        const e = elder(eid);
+                                        return e ? `<span class="elder-tag">${escapeHtml(e.name)}</span>` : '';
+                                    }).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div class="todo-actions">
+                        <button class="todo-action-btn" onclick="openEditTodo(${todo.id})">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                            Edit
+                        </button>
+                        <button class="todo-action-btn delete" onclick="deleteTodo(${todo.id})">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderElders() {
+            const container = document.getElementById('elderList');
+            
+            if (state.elders.elders.length === 0) {
+                container.innerHTML = renderEmptyState('No elders', 'Add elders to assign tasks');
+                return;
+            }
+            
+            container.innerHTML = state.elders.elders.map(elder => {
+                const taskCount = state.todos.todos.filter(t => t.assignedElders.includes(elder.id) && !t.isCompleted).length;
+                const initial = elder.name.charAt(0).toUpperCase();
+                
+                return `
+                    <div class="elder-card">
+                        <div class="elder-avatar">${initial}</div>
+                        <div class="elder-info">
+                            <div class="elder-name">${escapeHtml(elder.name)}</div>
+                            <div class="elder-task-count">${taskCount} active task${taskCount !== 1 ? 's' : ''}</div>
+                        </div>
+                        <div class="elder-actions">
+                            <button class="elder-btn" onclick="openEditElder(${elder.id})" title="Edit">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                            </button>
+                            <button class="elder-btn delete" onclick="deleteElder(${elder.id})" title="Delete">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderElderCheckboxes() {
+            const container = document.getElementById('elderCheckboxes');
+            container.innerHTML = state.elders.elders.map(elder => `
+                <label class="form-checkbox-item" data-elder-id="${elder.id}">
+                    <input type="checkbox" name="elder" value="${elder.id}">
+                    ${escapeHtml(elder.name)}
+                </label>
+            `).join('');
+            
+            // Add click handlers
+            container.querySelectorAll('.form-checkbox-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    if (e.target.tagName !== 'INPUT') {
+                        const checkbox = item.querySelector('input');
+                        checkbox.checked = !checkbox.checked;
+                    }
+                    item.classList.toggle('selected', item.querySelector('input').checked);
+                });
+            });
+        }
+
+        function renderEmptyState(title, message) {
+            return `
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                    </svg>
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        /* ============================================
+           DRAG AND DROP
+           ============================================ */
+        function initDragAndDrop(container, listType) {
+            const cards = container.querySelectorAll('.todo-card[draggable="true"]');
+            
+            cards.forEach(card => {
+                card.addEventListener('dragstart', (e) => {
+                    card.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', card.dataset.index);
+                });
+                
+                card.addEventListener('dragend', () => {
+                    card.classList.remove('dragging');
+                    container.querySelectorAll('.todo-card').forEach(c => c.classList.remove('drag-over'));
+                });
+                
+                card.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const dragging = container.querySelector('.dragging');
+                    if (dragging !== card) {
+                        card.classList.add('drag-over');
+                    }
+                });
+                
+                card.addEventListener('dragleave', () => {
+                    card.classList.remove('drag-over');
+                });
+                
+                card.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    card.classList.remove('drag-over');
+                    const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                    const toIndex = parseInt(card.dataset.index);
+                    
+                    if (fromIndex !== toIndex) {
+                        reorderTodos(fromIndex, toIndex, listType);
+                    }
+                });
+            });
+        }
+
+        /* ============================================
+           MODAL HANDLERS
+           ============================================ */
+        function openAddTodo() {
+            state.editingTodoId = null;
+            document.getElementById('todoModalTitle').textContent = 'Add Task';
+            document.getElementById('todoForm').reset();
+            document.getElementById('todoId').value = '';
+            document.querySelectorAll('#elderCheckboxes .form-checkbox-item').forEach(item => {
+                item.classList.remove('selected');
+                item.querySelector('input').checked = false;
+            });
+            document.getElementById('starredCheckbox').classList.remove('selected');
+            document.getElementById('todoModal').classList.add('active');
+        }
+
+        function openEditTodo(id) {
+            const todo = state.todos.todos.find(t => t.id === id);
+            if (!todo) return;
+            
+            state.editingTodoId = id;
+            document.getElementById('todoModalTitle').textContent = 'Edit Task';
+            document.getElementById('todoId').value = id;
+            document.getElementById('todoTitle').value = todo.title;
+            document.getElementById('todoDescription').value = todo.description || '';
+            document.getElementById('todoDueDate').value = todo.dueDate || '';
+            document.getElementById('todoPriority').value = todo.priority;
+            document.getElementById('todoRecurring').value = todo.recurring || '';
+            document.getElementById('todoStarred').checked = todo.isStarred;
+            
+            document.querySelectorAll('#elderCheckboxes .form-checkbox-item').forEach(item => {
+                const elderId = parseInt(item.dataset.elderId);
+                const isSelected = todo.assignedElders.includes(elderId);
+                item.classList.toggle('selected', isSelected);
+                item.querySelector('input').checked = isSelected;
+            });
+            
+            document.getElementById('starredCheckbox').classList.toggle('selected', todo.isStarred);
+            document.getElementById('todoModal').classList.add('active');
+        }
+
+        function closeTodoModal() {
+            document.getElementById('todoModal').classList.remove('active');
+            state.editingTodoId = null;
+        }
+
+        async function saveTodoForm() {
+            const title = document.getElementById('todoTitle').value.trim();
+            if (!title) {
+                showToast('Please enter a title', 'error');
+                return;
+            }
+            
+            const assignedElders = [];
+            document.querySelectorAll('#elderCheckboxes input:checked').forEach(cb => {
+                assignedElders.push(parseInt(cb.value));
+            });
+            
+            const todoData = {
+                title,
+                description: document.getElementById('todoDescription').value,
+                dueDate: document.getElementById('todoDueDate').value || null,
+                priority: document.getElementById('todoPriority').value,
+                recurring: document.getElementById('todoRecurring').value || null,
+                isStarred: document.getElementById('todoStarred').checked,
+                assignedElders
+            };
+            
+            let success;
+            if (state.editingTodoId) {
+                success = await updateTodo(state.editingTodoId, todoData);
+            } else {
+                success = await addTodo(todoData);
+            }
+            
+            if (success) {
+                closeTodoModal();
+            }
+        }
+
+        function openEditElder(id) {
+            const elder = state.elders.elders.find(e => e.id === id);
+            if (!elder) return;
+            
+            document.getElementById('editElderId').value = id;
+            document.getElementById('editElderName').value = elder.name;
+            document.getElementById('elderModal').classList.add('active');
+        }
+
+        function closeElderModal() {
+            document.getElementById('elderModal').classList.remove('active');
+        }
+
+        async function saveElderForm() {
+            const id = parseInt(document.getElementById('editElderId').value);
+            const name = document.getElementById('editElderName').value.trim();
+            
+            if (!name) {
+                showToast('Please enter a name', 'error');
+                return;
+            }
+            
+            await updateElder(id, name);
+            closeElderModal();
+        }
+
+        /* ============================================
+           CONFIRMATION DIALOG
+           ============================================ */
+        function showConfirm(title, message, callback) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            state.confirmCallback = callback;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        function closeConfirm() {
+            document.getElementById('confirmModal').classList.remove('active');
+            state.confirmCallback = null;
+        }
+
+        function handleConfirmOk() {
+            if (state.confirmCallback) {
+                state.confirmCallback();
+            }
+            closeConfirm();
+        }
+
+        /* ============================================
+           UTILITY FUNCTIONS
+           ============================================ */
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            if (date.toDateString() === today.toDateString()) {
+                return 'Today';
+            } else if (date.toDateString() === tomorrow.toDateString()) {
+                return 'Tomorrow';
+            } else {
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            }
+        }
+
+        function getDueDateClass(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (date < today) return 'overdue';
+            if (date.toDateString() === today.toDateString()) return 'today';
+            return '';
+        }
+
+        function setSyncStatus(status) {
+            const dot = document.getElementById('syncDot');
+            const text = document.getElementById('syncText');
+            
+            dot.className = 'sync-dot';
+            
+            switch (status) {
+                case 'syncing':
+                    dot.classList.add('syncing');
+                    text.textContent = 'Syncing...';
+                    break;
+                case 'error':
+                    dot.classList.add('error');
+                    text.textContent = 'Sync Error';
+                    break;
+                default:
+                    text.textContent = 'Synced';
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    ${type === 'success' ? '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' :
+                      type === 'error' ? '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>' :
+                      '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'}
+                </svg>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'toastIn 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        /* ============================================
+           EVENT LISTENERS
+           ============================================ */
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize
+            loadData();
+            
+            // Tab navigation
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    state.currentTab = tab.dataset.tab;
+                    renderAll();
+                });
+            });
+            
+            // Search
+            const searchInput = document.getElementById('searchInput');
+            const searchClear = document.getElementById('searchClear');
+            
+            searchInput.addEventListener('input', (e) => {
+                state.searchQuery = e.target.value;
+                searchClear.classList.toggle('visible', e.target.value.length > 0);
+                renderAll();
+            });
+            
+            searchClear.addEventListener('click', () => {
+                searchInput.value = '';
+                state.searchQuery = '';
+                searchClear.classList.remove('visible');
+                renderAll();
+            });
+            
+            // Sort
+            document.getElementById('sortSelect').addEventListener('change', (e) => {
+                state.sortBy = e.target.value;
+                renderAll();
+            });
+            
+            // Group by elder toggle
+            document.getElementById('groupByElder').addEventListener('click', (e) => {
+                state.groupByElder = !state.groupByElder;
+                e.currentTarget.classList.toggle('active', state.groupByElder);
+                renderAll();
+            });
+            
+            // FAB
+            document.getElementById('addTodoBtn').addEventListener('click', openAddTodo);
+            
+            // Todo Modal
+            document.getElementById('closeTodoModal').addEventListener('click', closeTodoModal);
+            document.getElementById('cancelTodoBtn').addEventListener('click', closeTodoModal);
+            document.getElementById('saveTodoBtn').addEventListener('click', saveTodoForm);
+            document.getElementById('todoModal').addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal-overlay')) closeTodoModal();
+            });
+            
+            // Starred checkbox toggle
+            document.getElementById('starredCheckbox').addEventListener('click', (e) => {
+                if (e.target.tagName !== 'INPUT') {
+                    const checkbox = document.getElementById('todoStarred');
+                    checkbox.checked = !checkbox.checked;
+                }
+                e.currentTarget.classList.toggle('selected', document.getElementById('todoStarred').checked);
+            });
+            
+            // Elder Modal
+            document.getElementById('closeElderModal').addEventListener('click', closeElderModal);
+            document.getElementById('cancelElderBtn').addEventListener('click', closeElderModal);
+            document.getElementById('saveElderBtn').addEventListener('click', saveElderForm);
+            document.getElementById('elderModal').addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal-overlay')) closeElderModal();
+            });
+            
+            // Add Elder Form
+            document.getElementById('addElderForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const input = document.getElementById('newElderName');
+                addElder(input.value);
+                input.value = '';
+            });
+            
+            // Confirm Modal
+            document.getElementById('confirmCancel').addEventListener('click', closeConfirm);
+            document.getElementById('confirmOk').addEventListener('click', handleConfirmOk);
+            document.getElementById('confirmModal').addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal-overlay')) closeConfirm();
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeTodoModal();
+                    closeElderModal();
+                    closeConfirm();
+                    document.getElementById('tokenModal').classList.remove('active');
+                }
+            });
+            
+            // Settings button - open token modal
+            document.getElementById('settingsBtn').addEventListener('click', () => {
+                document.getElementById('githubTokenInput').value = getToken() || '';
+                document.getElementById('tokenModal').classList.add('active');
+            });
+            
+            // Token modal save
+            document.getElementById('saveTokenBtn').addEventListener('click', () => {
+                const token = document.getElementById('githubTokenInput').value.trim();
+                if (token) {
+                    setToken(token);
+                    document.getElementById('tokenModal').classList.remove('active');
+                    showToast('Token saved!', 'success');
+                } else {
+                    showToast('Please enter a valid token', 'error');
+                }
+            });
+            
+            // Token modal close/cancel
+            document.getElementById('closeTokenModal').addEventListener('click', () => {
+                document.getElementById('tokenModal').classList.remove('active');
+            });
+            document.getElementById('cancelTokenBtn').addEventListener('click', () => {
+                document.getElementById('tokenModal').classList.remove('active');
+            });
+            document.getElementById('tokenModal').addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal-overlay')) {
+                    document.getElementById('tokenModal').classList.remove('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
