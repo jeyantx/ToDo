@@ -149,24 +149,6 @@
             background: var(--danger);
         }
 
-        .settings-btn {
-            background: rgba(255,255,255,0.15);
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            transition: var(--transition);
-        }
-
-        .settings-btn:hover {
-            background: rgba(255,255,255,0.25);
-        }
-
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -1183,12 +1165,6 @@
                     </svg>
                     Elder ToDo
                 </h1>
-                <button class="settings-btn" id="settingsBtn" title="Settings">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                    </svg>
-                </button>
                 <div class="sync-status">
                     <span class="sync-dot" id="syncDot"></span>
                     <span id="syncText">Synced</span>
@@ -1196,19 +1172,11 @@
             </div>
             <div class="stats-bar">
                 <div class="stat-item">
-                    <span>Total</span>
-                    <span class="stat-value" id="statTotal">0</span>
-                </div>
-                <div class="stat-item">
                     <span>Active</span>
                     <span class="stat-value" id="statActive">0</span>
                 </div>
                 <div class="stat-item">
-                    <span>Completed</span>
-                    <span class="stat-value" id="statCompleted">0</span>
-                </div>
-                <div class="stat-item">
-                    <span>Starred</span>
+                    <span>⭐ Starred</span>
                     <span class="stat-value" id="statStarred">0</span>
                 </div>
             </div>
@@ -1444,107 +1412,64 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- Token Setup Modal -->
-    <div class="modal-overlay" id="tokenModal">
-        <div class="modal" style="max-width: 450px;">
-            <div class="modal-header">
-                <h2 class="modal-title">🔐 Setup GitHub Token</h2>
-                <button class="modal-close" id="closeTokenModal">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p style="color: var(--gray-600); margin-bottom: 16px; font-size: 0.9rem;">
-                    To save changes, enter your GitHub Personal Access Token with <strong>repo</strong> permissions.
-                    The token is stored locally in your browser only.
-                </p>
-                <div class="form-group">
-                    <label class="form-label">GitHub Personal Access Token</label>
-                    <input type="password" class="form-input" id="githubTokenInput" placeholder="ghp_xxxxxxxxxxxx or github_pat_xxxx">
-                </div>
-                <p style="color: var(--gray-500); font-size: 0.8rem;">
-                    <a href="https://github.com/settings/tokens?type=beta" target="_blank" style="color: var(--primary-600);">Create a token here</a> 
-                    → Select your repo → Permissions: Contents (Read & Write)
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancelTokenBtn">Cancel</button>
-                <button class="btn btn-primary" id="saveTokenBtn">Save Token</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         /* ============================================
            CONFIGURATION
            ============================================ */
         const CONFIG = {
+            GITHUB_TOKEN: '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',
             GITHUB_OWNER: 'jeyantx',
             GITHUB_REPO: 'ToDo',
             ELDERS_FILE: 'data/elders.json',
             TODOS_FILE: 'data/todos.json',
-            TOKEN_KEY: 'elder_todo_github_token'
+            COMPLETED_FILE: 'data/completed.json',
+            AUTO_RELOAD_MINUTES: 20
         };
 
         const API_BASE = `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/contents`;
 
         /* ============================================
-           TOKEN MANAGEMENT
+           AUTO RELOAD MANAGEMENT
            ============================================ */
-        function getToken() {
-            return localStorage.getItem(CONFIG.TOKEN_KEY);
+        let lastActivityTime = Date.now();
+        let autoReloadInterval = null;
+
+        function resetActivityTimer() {
+            lastActivityTime = Date.now();
         }
 
-        function setToken(token) {
-            localStorage.setItem(CONFIG.TOKEN_KEY, token);
+        function isFormDirty() {
+            // Check if any modal is open with data
+            const todoModal = document.getElementById('todoModal');
+            const elderModal = document.getElementById('elderModal');
+            
+            if (todoModal && todoModal.classList.contains('active')) {
+                const titleInput = document.getElementById('todoTitle');
+                if (titleInput && titleInput.value.trim()) return true;
+            }
+            
+            if (elderModal && elderModal.classList.contains('active')) {
+                return true;
+            }
+            
+            return false;
         }
 
-        function clearToken() {
-            localStorage.removeItem(CONFIG.TOKEN_KEY);
+        function checkAutoReload() {
+            const inactiveMinutes = (Date.now() - lastActivityTime) / (1000 * 60);
+            if (inactiveMinutes >= CONFIG.AUTO_RELOAD_MINUTES && !isFormDirty()) {
+                location.reload();
+            }
         }
 
-        function hasToken() {
-            return !!getToken();
-        }
-
-        async function promptForToken() {
-            return new Promise((resolve) => {
-                const modal = document.getElementById('tokenModal');
-                const input = document.getElementById('githubTokenInput');
-                const saveBtn = document.getElementById('saveTokenBtn');
-                const cancelBtn = document.getElementById('cancelTokenBtn');
-                const closeBtn = document.getElementById('closeTokenModal');
-                
-                input.value = getToken() || '';
-                modal.classList.add('active');
-                input.focus();
-                
-                const cleanup = () => {
-                    modal.classList.remove('active');
-                    saveBtn.onclick = null;
-                    cancelBtn.onclick = null;
-                    closeBtn.onclick = null;
-                };
-                
-                saveBtn.onclick = () => {
-                    const token = input.value.trim();
-                    if (token) {
-                        setToken(token);
-                        cleanup();
-                        resolve(token);
-                    } else {
-                        showToast('Please enter a valid token', 'error');
-                    }
-                };
-                
-                cancelBtn.onclick = closeBtn.onclick = () => {
-                    cleanup();
-                    resolve(null);
-                };
+        function initAutoReload() {
+            // Track user activity
+            ['click', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+                document.addEventListener(event, resetActivityTimer, { passive: true });
             });
+            
+            // Check every minute
+            autoReloadInterval = setInterval(checkAutoReload, 60 * 1000);
         }
 
         /* ============================================
@@ -1553,8 +1478,10 @@
         let state = {
             elders: { version: 1, lastUpdated: null, elders: [] },
             todos: { version: 1, lastUpdated: null, nextId: 1, todos: [] },
+            completed: { version: 1, lastUpdated: null, todos: [] },
             eldersSha: null,
             todosSha: null,
+            completedSha: null,
             currentTab: 'active',
             searchQuery: '',
             sortBy: 'createdAt-desc',
@@ -1613,14 +1540,7 @@
         }
 
         async function saveFile(path, content, sha, message) {
-            // Ensure we have a token before saving
-            let token = getToken();
-            if (!token) {
-                token = await promptForToken();
-                if (!token) {
-                    throw new Error('TOKEN_REQUIRED');
-                }
-            }
+            const token = CONFIG.GITHUB_TOKEN;
             
             setSyncStatus('syncing');
             try {
@@ -1650,16 +1570,10 @@
                     body: JSON.stringify(body)
                 });
                 
-                // If unauthorized, clear token and prompt again
+                // If unauthorized, show error
                 if (response.status === 401) {
-                    clearToken();
-                    showToast('Token invalid or expired. Please enter a new token.', 'error');
-                    token = await promptForToken();
-                    if (!token) {
-                        throw new Error('TOKEN_REQUIRED');
-                    }
-                    // Retry with new token
-                    return saveFile(path, content, null, message);
+                    showToast('Token invalid or expired. Please contact admin.', 'error');
+                    throw new Error('TOKEN_INVALID');
                 }
                 
                 if (!response.ok) {
@@ -1689,9 +1603,10 @@
         async function loadData() {
             setSyncStatus('syncing');
             try {
-                const [eldersData, todosData] = await Promise.all([
+                const [eldersData, todosData, completedData] = await Promise.all([
                     fetchFile(CONFIG.ELDERS_FILE),
-                    fetchFile(CONFIG.TODOS_FILE)
+                    fetchFile(CONFIG.TODOS_FILE),
+                    fetchFile(CONFIG.COMPLETED_FILE).catch(() => null)
                 ]);
                 
                 if (eldersData) {
@@ -1702,6 +1617,14 @@
                 if (todosData) {
                     state.todos = todosData.content;
                     state.todosSha = todosData.sha;
+                }
+                
+                if (completedData) {
+                    state.completed = completedData.content;
+                    state.completedSha = completedData.sha;
+                } else {
+                    // Initialize completed file if it doesn't exist
+                    state.completed = { version: 1, lastUpdated: null, todos: [] };
                 }
                 
                 setSyncStatus('synced');
@@ -1735,6 +1658,20 @@
             } catch (error) {
                 if (error.message !== 'VERSION_CONFLICT') {
                     showToast('Failed to save tasks.', 'error');
+                }
+                return false;
+            }
+        }
+
+        async function saveCompleted() {
+            state.completed.lastUpdated = new Date().toISOString();
+            state.completed.version++;
+            try {
+                state.completedSha = await saveFile(CONFIG.COMPLETED_FILE, state.completed, state.completedSha, 'Update completed');
+                return true;
+            } catch (error) {
+                if (error.message !== 'VERSION_CONFLICT') {
+                    showToast('Failed to save completed tasks.', 'error');
                 }
                 return false;
             }
@@ -1843,34 +1780,63 @@
             return false;
         }
 
-        async function deleteTodo(id) {
-            const todo = state.todos.todos.find(t => t.id === id);
+        async function deleteTodo(id, fromCompleted = false) {
+            const list = fromCompleted ? state.completed.todos : state.todos.todos;
+            const todo = list.find(t => t.id === id);
             if (!todo) return;
             
             showConfirm(
                 'Delete Task?',
                 `"${todo.title}" will be permanently deleted.`,
                 async () => {
-                    state.todos.todos = state.todos.todos.filter(t => t.id !== id);
-                    if (await saveTodos()) {
-                        showToast('Task deleted!', 'success');
-                        renderAll();
+                    if (fromCompleted) {
+                        state.completed.todos = state.completed.todos.filter(t => t.id !== id);
+                        if (await saveCompleted()) {
+                            showToast('Task deleted!', 'success');
+                            renderAll();
+                        }
+                    } else {
+                        state.todos.todos = state.todos.todos.filter(t => t.id !== id);
+                        if (await saveTodos()) {
+                            showToast('Task deleted!', 'success');
+                            renderAll();
+                        }
                     }
                 }
             );
         }
 
-        async function toggleComplete(id) {
-            const todo = state.todos.todos.find(t => t.id === id);
-            if (todo) {
-                todo.isCompleted = !todo.isCompleted;
-                todo.completedAt = todo.isCompleted ? new Date().toISOString() : null;
+        async function toggleComplete(id, fromCompleted = false) {
+            if (fromCompleted) {
+                // Moving from completed back to active
+                const todoIndex = state.completed.todos.findIndex(t => t.id === id);
+                if (todoIndex === -1) return;
+                
+                const todo = state.completed.todos[todoIndex];
+                todo.isCompleted = false;
+                todo.completedAt = null;
+                
+                // Remove from completed, add to active
+                state.completed.todos.splice(todoIndex, 1);
+                state.todos.todos.push(todo);
+                
+                await Promise.all([saveTodos(), saveCompleted()]);
+                showToast('Task moved back to active!', 'success');
+                renderAll();
+            } else {
+                // Moving from active to completed
+                const todoIndex = state.todos.todos.findIndex(t => t.id === id);
+                if (todoIndex === -1) return;
+                
+                const todo = state.todos.todos[todoIndex];
+                todo.isCompleted = true;
+                todo.completedAt = new Date().toISOString();
                 
                 // Handle recurring tasks
-                if (todo.isCompleted && todo.recurring) {
+                if (todo.recurring) {
                     const newDueDate = calculateNextDueDate(todo.dueDate, todo.recurring);
                     if (newDueDate) {
-                        // Create new recurring task
+                        // Create new recurring task (keep in active)
                         const newTodo = {
                             ...todo,
                             id: state.todos.nextId++,
@@ -1884,22 +1850,27 @@
                     }
                 }
                 
-                if (await saveTodos()) {
-                    if (!todo.recurring || !todo.isCompleted) {
-                        showToast(todo.isCompleted ? 'Task completed!' : 'Task uncompleted!', 'success');
-                    }
-                    renderAll();
-                }
+                // Remove from active, add to completed
+                state.todos.todos.splice(todoIndex, 1);
+                state.completed.todos.unshift(todo);
+                
+                await Promise.all([saveTodos(), saveCompleted()]);
+                showToast('Task completed!', 'success');
+                renderAll();
             }
         }
 
-        async function toggleStar(id) {
-            const todo = state.todos.todos.find(t => t.id === id);
+        async function toggleStar(id, fromCompleted = false) {
+            const list = fromCompleted ? state.completed.todos : state.todos.todos;
+            const todo = list.find(t => t.id === id);
             if (todo) {
                 todo.isStarred = !todo.isStarred;
-                if (await saveTodos()) {
-                    renderAll();
+                if (fromCompleted) {
+                    await saveCompleted();
+                } else {
+                    await saveTodos();
                 }
+                renderAll();
             }
         }
 
@@ -2043,14 +2014,13 @@
         }
 
         function updateStats() {
-            const todos = state.todos.todos;
-            const active = todos.filter(t => !t.isCompleted).length;
-            const completed = todos.filter(t => t.isCompleted).length;
-            const starred = todos.filter(t => t.isStarred && !t.isCompleted).length;
+            const activeTodos = state.todos.todos;
+            const completedTodos = state.completed.todos;
+            const active = activeTodos.length;
+            const completed = completedTodos.length;
+            const starred = activeTodos.filter(t => t.isStarred).length;
             
-            document.getElementById('statTotal').textContent = todos.length;
             document.getElementById('statActive').textContent = active;
-            document.getElementById('statCompleted').textContent = completed;
             document.getElementById('statStarred').textContent = starred;
             
             document.getElementById('tabBadgeActive').textContent = active;
@@ -2070,7 +2040,7 @@
 
         function renderActiveTodos() {
             const container = document.getElementById('activeList');
-            let todos = sortTodos(getFilteredTodos().filter(t => !t.isCompleted));
+            let todos = sortTodos(getFilteredTodos());
             
             if (todos.length === 0) {
                 container.innerHTML = renderEmptyState('No active tasks', 'Add a task to get started!');
@@ -2108,7 +2078,7 @@
 
         function renderStarredTodos() {
             const container = document.getElementById('starredList');
-            const todos = sortTodos(getFilteredTodos().filter(t => t.isStarred && !t.isCompleted));
+            const todos = sortTodos(getFilteredTodos().filter(t => t.isStarred));
             
             if (todos.length === 0) {
                 container.innerHTML = renderEmptyState('No starred tasks', 'Star important tasks to see them here');
@@ -2121,7 +2091,18 @@
 
         function renderCompletedTodos() {
             const container = document.getElementById('completedList');
-            const todos = getFilteredTodos().filter(t => t.isCompleted);
+            let todos = [...state.completed.todos];
+            
+            // Apply search filter
+            if (state.searchQuery) {
+                const query = state.searchQuery.toLowerCase();
+                todos = todos.filter(t => 
+                    t.title.toLowerCase().includes(query) ||
+                    t.description.toLowerCase().includes(query)
+                );
+            }
+            
+            // Sort by completion date (most recent first)
             todos.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
             
             if (todos.length === 0) {
@@ -2137,17 +2118,18 @@
             const dueDateClass = getDueDateClass(todo.dueDate);
             const priorityLabel = { high: 'High', medium: 'Medium', low: 'Low' };
             const recurringLabel = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' };
+            const isCompleted = listType === 'completed';
             
             return `
-                <div class="todo-card ${todo.isCompleted ? 'completed' : ''}" data-id="${todo.id}" data-index="${index}" draggable="${listType !== 'completed'}">
+                <div class="todo-card ${isCompleted ? 'completed' : ''}" data-id="${todo.id}" data-index="${index}" draggable="${!isCompleted}">
                     <div class="todo-header">
-                        <div class="todo-checkbox ${todo.isCompleted ? 'checked' : ''}" onclick="toggleComplete(${todo.id})">
-                            ${todo.isCompleted ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
+                        <div class="todo-checkbox ${isCompleted ? 'checked' : ''}" onclick="toggleComplete(${todo.id}, ${isCompleted})">
+                            ${isCompleted ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
                         </div>
                         <div class="todo-info">
                             <div class="todo-title-row">
                                 <span class="todo-title">${escapeHtml(todo.title)}</span>
-                                <svg class="todo-star ${todo.isStarred ? 'starred' : ''}" width="18" height="18" viewBox="0 0 24 24" fill="${todo.isStarred ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" onclick="toggleStar(${todo.id})">
+                                <svg class="todo-star ${todo.isStarred ? 'starred' : ''}" width="18" height="18" viewBox="0 0 24 24" fill="${todo.isStarred ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" onclick="toggleStar(${todo.id}, ${isCompleted})">
                                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                                 </svg>
                             </div>
@@ -2157,7 +2139,7 @@
                                 ${todo.dueDate ? `<span class="todo-badge badge-due ${dueDateClass}">${formatDate(todo.dueDate)}</span>` : ''}
                                 ${todo.recurring ? `<span class="todo-badge badge-recurring">🔄 ${recurringLabel[todo.recurring]}</span>` : ''}
                             </div>
-                            ${todo.assignedElders.length > 0 ? `
+                            ${todo.assignedElders && todo.assignedElders.length > 0 ? `
                                 <div class="todo-elders">
                                     ${todo.assignedElders.map(eid => {
                                         const e = elder(eid);
@@ -2168,6 +2150,7 @@
                         </div>
                     </div>
                     <div class="todo-actions">
+                        ${!isCompleted ? `
                         <button class="todo-action-btn" onclick="openEditTodo(${todo.id})">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -2175,7 +2158,8 @@
                             </svg>
                             Edit
                         </button>
-                        <button class="todo-action-btn delete" onclick="deleteTodo(${todo.id})">
+                        ` : ''}
+                        <button class="todo-action-btn delete" onclick="deleteTodo(${todo.id}, ${isCompleted})">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="3 6 5 6 21 6"/>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -2515,6 +2499,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize
             loadData();
+            initAutoReload();
             
             // Tab navigation
             document.querySelectorAll('.tab').forEach(tab => {
@@ -2603,38 +2588,6 @@
                     closeTodoModal();
                     closeElderModal();
                     closeConfirm();
-                    document.getElementById('tokenModal').classList.remove('active');
-                }
-            });
-            
-            // Settings button - open token modal
-            document.getElementById('settingsBtn').addEventListener('click', () => {
-                document.getElementById('githubTokenInput').value = getToken() || '';
-                document.getElementById('tokenModal').classList.add('active');
-            });
-            
-            // Token modal save
-            document.getElementById('saveTokenBtn').addEventListener('click', () => {
-                const token = document.getElementById('githubTokenInput').value.trim();
-                if (token) {
-                    setToken(token);
-                    document.getElementById('tokenModal').classList.remove('active');
-                    showToast('Token saved!', 'success');
-                } else {
-                    showToast('Please enter a valid token', 'error');
-                }
-            });
-            
-            // Token modal close/cancel
-            document.getElementById('closeTokenModal').addEventListener('click', () => {
-                document.getElementById('tokenModal').classList.remove('active');
-            });
-            document.getElementById('cancelTokenBtn').addEventListener('click', () => {
-                document.getElementById('tokenModal').classList.remove('active');
-            });
-            document.getElementById('tokenModal').addEventListener('click', (e) => {
-                if (e.target.classList.contains('modal-overlay')) {
-                    document.getElementById('tokenModal').classList.remove('active');
                 }
             });
         });
